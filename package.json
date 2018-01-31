@@ -1,0 +1,29 @@
+{
+  "name": "s4stests",
+  "version": "1.0.0",
+  "description": "Automated Tests for S4S",
+  "main": "automated-testing.js",
+  "dependencies": {},
+  "devDependencies": {
+    "babel": "6.23.0",
+    "babel-core": "6.26.0",
+    "babel-polyfill": "6.26.0",
+    "babel-preset-es2015": "6.24.1",
+    "faker": "4.1.0",
+    "jest": "22.1.4",
+    "puppeteer": "1.0.0"
+  },
+  "scripts": {
+    "start": "node ./app/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JayAdjust/S4STests.git"
+  },
+  "author": "Jeremy Anderson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JayAdjust/S4STests/issues"
+  },
+  "homepage": "https://github.com/JayAdjust/S4STests#readme"
+}
