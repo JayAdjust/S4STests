@@ -78,7 +78,7 @@ async function onSignUp(email, newCompany, companyName, firstName, lastName, pas
 	// enter copmpany name
 	if (newCompany) {
 		await page.click(".checkbox-custom");
-		await page.waitFor(500);
+		await page.waitFor(50);
 		await page.type("input[name=company]", companyName);
 	} else {
 		await page.type("input[name=code]", companyName);
@@ -140,8 +140,9 @@ async function onSignUp(email, newCompany, companyName, firstName, lastName, pas
 		didSignUp = popupMessage.startsWith("Success");
 
 		// clear the popup
-		await page.waitFor(1000);
+		await page.waitFor(300);
 		await page.click(".toastr-middle-container");
+		await page.waitFor(300);
 
 		// they got re-directed to the home page again
 		// click the sign up button
