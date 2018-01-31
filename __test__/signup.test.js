@@ -15,7 +15,7 @@ describe("Signing Up", () => {
     /*******************************************************
      *  Pre-Test:
      *******************************************************/
-    test("Getting to the sign up page", async () => {  
+    test("Getting to the sign up page", async () => {
         let page = _.GetPage(); 
 
         // if we're not in the sign up page, go there!
