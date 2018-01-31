@@ -1,3 +1,9 @@
+import { _ } from '../StartUp/startUp_controller';
+
+let browser;
+let totalTestsFailed = 0;
+let totalTests = 0;
+
 function print(msg) {
     process.stdout.write(msg);
 }
@@ -22,11 +28,29 @@ function endTestSequence(category, numTests, numFailed) {
 		printLine("  - NOT GOOD!");
 	} else {
 		printLine("  - All good! :)");
-	}
+    }
+    
+    // store statistics
+    totalTests += numTests;
+    totalTestsFailed += numFailed;
 }
 
 function endAllTests() {
+    browser = _.GetBrowser();
+
+    printLine("");
     printLine("=====ENDED ALL TESTS=====");
+    printLine("  - Total Tests: " + totalTests);
+    printLine("  - Tests Passed: " + (totalTests - totalTestsFailed));
+    printLine("  - Failed tests: " + totalTestsFailed);
+
+    if (totalTestsFailed > 0) {
+		printLine("  - NOT GOOD! You still have work to do!");
+	} else {
+		printLine("  - All good! You can take it easy for today :)");
+    }
+
+    browser.close();
 }
 
 export const Log = {

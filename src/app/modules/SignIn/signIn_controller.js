@@ -78,8 +78,8 @@ async function onSignIn(email, pass) {
 	await page.click("input[name=password]");
 	await ClearPassword();
 	await page.type("input[name=password]", pass, {delay: 50});
-	await page.click(".btn.btn-sign-up");
 
+	await page.click(".btn.btn-sign-up");
 	await page.waitFor(1000);
 
 	return !!(await page.$('.side-bar'));
