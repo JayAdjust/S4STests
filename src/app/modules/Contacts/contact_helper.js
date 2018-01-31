@@ -41,6 +41,7 @@ export const Contact = {
 
         // enter the city
         await page.focus("select[name='country']");
+        await page.waitFor(300); // remove the auto-complete window in the company
         await page.select("select[name='country']", country);
 
         // enter the postal code / zip code
@@ -50,6 +51,10 @@ export const Contact = {
         // enter street address
         await page.focus(".address-field.form-group.std input");
         await page.type(".address-field.form-group.std input", address);
+        await page.waitFor(1500); // wait for the auto-complete window to show
+        await page.click(".auto-address-item div:nth-child(1)");
+        await page.waitFor(1500);
+        await page.focus("");
 
         await page.waitFor(2000);
 
