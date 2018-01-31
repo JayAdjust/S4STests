@@ -3,7 +3,6 @@ import { _ } from '../Start/start_controller';
 let page;
 let browser;
 
-
 /**
  * <Private Functions>
  */

@@ -5,21 +5,6 @@ let page;
 let browser;
 
 /**
- * Tests for Jest
- */ 
-export const Tests = {
-	Setup: async () => {
-		page = _.GetPage();
-		browser = _.GetBrowser();
-		Wizard.Setup();
-	},
-
-	T1: async () => {
-		
-	}
-}
-
-/**
  * Private methods
  */ 
 async function CreateDomesticShipment(from, to, type, account){
@@ -53,4 +38,23 @@ async function CreateXBorderShipment(from, to){
 
 	// PRODUCTS PAGE
 
+}
+
+/**
+ * Tests for Jest
+ */ 
+export const Tests = {
+	Setup: async () => {
+		page = _.GetPage();
+		browser = _.GetBrowser();
+		Wizard.Setup();
+	}
+}
+
+export const Domestic = {
+
+}
+
+export const XBorder = {
+	
 }
