@@ -32,7 +32,7 @@ export const SignIn = {
 	    await ClearPassword();
 	    await page.type("input[name=password]", pass, { delay: 15 });
 	    await page.click(".btn.btn-sign-up");
-	    //await page.waitFor(1000);
+	    await page.waitFor(1000);
 
 	    return !!(await page.$('.side-bar'));
     },

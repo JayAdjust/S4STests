@@ -8,7 +8,6 @@ beforeAll(async () => {
 
     SignIn.Setup();
     Wizard.Tests.Setup();
-    await SignIn.onSignIn("Jeremy@dicom.com", "test123");
 });
 
 afterAll(() => {
@@ -16,9 +15,21 @@ afterAll(() => {
 });
 
 describe("Wizard Domestic Shipment Tests", () => {
+    /*******************************************************
+     *  Pre-Test:
+     *******************************************************/
+    test("Signing in", async () => {
+        expect(await SignIn.onSignIn("Jeremy@dicom.com", "test123")).toBe(true);
+    });
 
+    /*******************************************************
+     *  Test #1:
+     *******************************************************/
+    test("test", async () => {
+        expect(await Wizard.Domestic.T1()).toBe(true);
+    }, 100000);
 });
-
+/*
 describe("Wizard XBorder Shipment Tests", () => {
     
-});
+});*/

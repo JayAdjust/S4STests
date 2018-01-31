@@ -1,7 +1,16 @@
 import { _ } from '../Start/start_controller';
+import faker from 'faker';
 
+// Constants
+const measurements = ["metric", "imperial"];
+const parcelPackages = ["EV", "BX"];
+const freightPackages = ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"];
+
+// FIELDS
 let page;
 let browser;
+
+
 
 /**
  * <Private Functions>
@@ -16,8 +25,8 @@ async function GetFromContact(from){
 }
 async function GetToContact(to){
 	await page.waitFor(100);
-	await page.click(".shipment-container.to input[name=query]", {delay: TYPING_DELAY});
-	await page.type(".shipment-container.to input[name=query]", value);
+	await page.click(".shipment-container.to input[name=query]");
+	await page.type(".shipment-container.to input[name=query]", to);
 	await page.waitFor(2000);
 	await page.click(".contact-entry-item");
 	await page.waitFor(500);
@@ -127,20 +136,44 @@ async function AddAdditionalService(service){
 			break;
 	}
 }
+async function ChangeMeasurement(measurement){
+	await page.click(".control-toggle.weight span:nth-child(1) span:nth-child("+ measurement == "metric"? 2 : 1 +")");
+}
+async function ChangePackageType(type){
+	await page.select("select[name=type]",type);
+}
+async function ChangePackageQuantity(qty){
+	await page.type("input[name=quantity]", "" + qty + "");
+}
+async function ChangePackageWeight(wght){
+	await page.type("input[name=weight]", "" + wght + "");
+}
+async function ChangePackageDimensions(length, width, height){
+	await page.type("input[name=length]", "" + length + "");
+	await page.type("input[name=width]", "" + qty + "");
+	await page.type("input[name=height]", "" + qty + "");
+}
+async function ChangePackageInstructions(instructions){
+	await page.type("input[name=instructions]", "" + instructions + "");
+}
+
 /**
  * </Private Functions>
  */
 
 export const Wizard = {
+	Setup: () => {
+		page = _.GetPage();
+		browser = _.GetBrowser();
+	},
 
 	// Function
 	// 
 	GoToWizard: async() => {
-		await page.waitFor(1500);
 		await page.hover(".menu-item.active.hover-over.shipping");
+		await page.waitFor(500);
 		await page.click(".sub-routes div:nth-child(2)");
-		await page.waitFor(1500);
-	},
+		await page.waitFor(1500)	},
 
 	// Funtion
 	AddressDetails: async(from, to, type, account) => {
@@ -148,23 +181,47 @@ export const Wizard = {
 		await GetToContact(to);
 		await changePaymentType(type);
 		await changeBillingAccount(account);
-		await page.waitFor(3000);
-		await page.click(".btn.next");
+		
+		await page.waitFor(1000);
+		await page.click("#btnNext");
 	},
-
-	PackageDetails: async(service) => {
-		await page.click(".btn.btn-md.btn-secondary.inline");
-		await page.click(".btn.btn-md.btn-secondary.inline");
-		await page.click(".btn.btn-md.btn-secondary.inline");
-
-		if(service)
-			await changeServiceType(service);
+	PackageDetails: async(_package, service) => {
+		await ChangeMeasurement(_package.measurement);
+		await ChangePackageType(_package.type);
+		await ChangePackageQuantity(_package.quantity);
+		await ChangePackageWeight(_package.weight);
+		await ChangePackageDimensions(_package.length, _package.width, _package.height);
+		await ChangePackageInstructions(_package.instructions);
+		await changeServiceType(service);
 
 		await changePickupDate();
 		await page.waitFor(1500);
 		await page.click(".btn.next");
 	},
-
+	ParcelPackageRandomizer: () => {
+		return {
+			type: parcelPackages[Math.floor(Math.random() * parcelPackages.length)],
+			mesurement: measurements[Math.floor(Math.random() * measurements.length)],
+			quantity: Math.floor(Math.random() * 5) + 2,
+			weight: Math.floor(Math.random() * 10) + 1,
+			length: Math.floor(Math.random() * 15) + 5,
+			width: Math.floor(Math.random() * 15) + 5,
+			height: Math.floor(Math.random() * 15) + 5,
+			instructions: faker.random.words(3)
+		};
+	},
+	FreightPackageRandomizer: () => {
+		return {
+			type: freightPackages[Math.floor(Math.random() * freightPackages.length)],
+			measurement: measurements[Math.floor(Math.random() * measurements.length)],
+			quantity: Math.floor(Math.random() * 5) + 2,
+			weight: Math.floor(Math.random() * 10) + 1,
+			length: Math.floor(Math.random() * 20) + 5,
+			width: Math.floor(Math.random() * 20) + 5,
+			height: Math.floor(Math.random() * 20) + 5,
+			instructions: faker.random.words(3)
+		};
+	},
 	ConfirmAndPay: async(readyBy, closingTime, pickupPoint) => {
 		await changePickupPoint(pickupPoint);
 		await changePickupReadyBy(readyBy);
@@ -174,11 +231,6 @@ export const Wizard = {
 	
 		await page.click(".final-ship");
 	},
-
-	Setup: async() => {
-		page = _.GetPage();
-		browser = _.GetBrowser();
-	}
 }
 
 export const Quick = {
@@ -186,13 +238,12 @@ export const Quick = {
 	// Function
 	// 
 	GoToQuick: async() => {
-		await page.waitFor(1500);
 		await page.hover(".menu-item.active.hover-over.shipping");
+		await page.waitFor(500);
 		await page.click(".sub-routes div:nth-child(3)");
-		await page.waitFor(1500);
 	},
 
-	Setup: async() => {
+	Setup: () => {
 		page = _.GetPage();
 		browser = _.GetBrowser();
 	}
