@@ -27,10 +27,10 @@ export const SignIn = {
 	    await page.waitFor(1000);
 	    await page.click("input[name=email]");
 	    await ClearUsername();
-	    await page.type("input[name=email]", email, {delay: 50});
+	    await page.type("input[name=email]", email);
 	    await page.click("input[name=password]");
 	    await ClearPassword();
-	    await page.type("input[name=password]", pass, {delay: 50});
+	    await page.type("input[name=password]", pass);
 	    await page.click(".btn.btn-sign-up");
 	    await page.waitFor(1000);
 

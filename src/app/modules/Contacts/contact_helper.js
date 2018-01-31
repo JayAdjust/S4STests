@@ -4,14 +4,17 @@ let page;
 let browser;
 
 export const Contact = {
-    SetupPageAndBrowser: async() => {
+    Setup: () => {
 		page = _.GetPage();
 		browser = _.GetBrowser();
 	},
     GoToContacts: async () => {
-        await page.waitFor(1500);
+        await page.waitFor(1000);
         await page.hover(".menu-item.hover-over.manage");
-        await page.click(".sub-routes div:nth-child(2)");
-        await page.waitFor(1500);
+        await page.waitFor(500);
+        await page.click(".sub-route div:nth-child(1)");
+        await page.waitFor(1000);
+
+        return !!(await page.$(".manage-contacts-header"));
     },
 }
