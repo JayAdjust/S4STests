@@ -1,5 +1,4 @@
 import { _ } from '../Start/start_controller';
-import { Log } from '../Logging/logging';
 import faker from "faker";
 
 const VALID_EMAIL = "Jeremy@dicom.com";
@@ -36,26 +35,9 @@ export const Tests = {
 	}
 }
 
-export const Run = async() => {
-	page = _.GetPage();
-
-	Log.print("Signing in...");
-	await onSignIn();
-	Log.printLine("Done");
-}
-
-export const Working = async(email, password) => {
-	Log.print("Signing in...");
-	await page.waitFor(1500);
-
-	await page.type("input[name=email]", VALID_EMAIL, {delay: 100});
-	await page.type("input[name=password]", VALID_PASS, {delay: 100});
-	await page.click(".btn.btn-sign-up");
-
-	Log.printLine("Done");
-	await page.waitFor(1500);
-}
-
+/**
+ * Private Functions
+ */
 async function ClearUsername(){
 	await page.evaluate(function() {
 		document.querySelector('input[name=email]').value = "";

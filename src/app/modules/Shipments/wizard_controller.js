@@ -1,11 +1,25 @@
 import { _ } from '../Start/start_controller';
-import { Log } from '../Logging/logging';
 import { Wizard } from './shipment_helper';
 
 let page;
 let browser;
 
-// Private methods
+/**
+ * Tests for Jest
+ */ 
+export const Tests = {
+	Setup: async () => {
+
+	},
+
+	T1: async () => {
+		
+	}
+}
+
+/**
+ * Private methods
+ */ 
 async function CreateDomesticShipment(from, to, type, account){
 	await Wizard.GoToWizard();
 
@@ -37,23 +51,4 @@ async function CreateXBorderShipment(from, to){
 
 	// PRODUCTS PAGE
 
-}
-export const Tests = {
-	Setup: async () => {
-
-	},
-
-	T1: async () => {
-		
-	}
-}
-export const Run = async() => {
-	page = _.GetPage();
-	browser = _.GetBrowser();
-
-	await Wizard.SetupPageAndBrowser(page, browser);
-
-	// TODO: Add a bunch of test scenarios
-	!XBorder? await CreateDomesticShipment("Dicom shipping test","CA", "PREPAID", "300030") 
-		: await CreateXBorderShipment("Dicom shipping test", "phoenix");
 }

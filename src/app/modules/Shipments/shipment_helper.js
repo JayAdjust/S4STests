@@ -1,5 +1,4 @@
 import { _ } from '../Start/start_controller';
-import { Log } from '../Logging/logging';
 
 let page;
 let browser;
@@ -131,14 +130,10 @@ export const Wizard = {
 	// Function
 	// 
 	GoToWizard: async() => {
-		Log.print("Going to Quick Shipment...");
-
 		await page.waitFor(1500);
 		await page.hover(".menu-item.active.hover-over.shipping");
 		await page.click(".sub-routes div:nth-child(2)");
 		await page.waitFor(1500);
-
-		Log.printLine("done");
 	},
 
 	// Funtion
@@ -185,17 +180,13 @@ export const Quick = {
 	// Function
 	// 
 	GoToQuick: async() => {
-		Log.print("Going to Quick Shipment...");
 		await page.waitFor(1500);
-
 		await page.hover(".menu-item.active.hover-over.shipping");
 		await page.click(".sub-routes div:nth-child(3)");
-
 		await page.waitFor(1500);
-		Log.printLine("done");
 	},
 
-	SetupPageAndBrowser: async(_page, _browser) => {
+	SetupPageAndBrowser: async () => {
 		page = _page;
 		browser = _browser;
 	}
