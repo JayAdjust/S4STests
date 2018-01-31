@@ -7,10 +7,8 @@ beforeAll(async () => {
     await _.ChangeToDev();
     Contacts.Tests.Setup();
 
-    // to access the contacts page, you have to sign in first!
     SignIn.Setup();
     Contacts.Tests.Setup();
-    await SignIn.onSignIn("Jeremy@dicom.com", "test123");
 });
 
 afterAll(() => {
@@ -20,7 +18,14 @@ afterAll(() => {
 
 describe("Contacts", () => {
     /*******************************************************
-     *  Pre-Test:
+     *  Pre-Test #1: To access the contacts page, you have to sign in first!
+     *******************************************************/
+    test("Signing in", async () => {
+        expect(await SignIn.onSignIn("Jeremy@dicom.com", "test123")).toBe(true);
+    }, 16000);
+
+    /*******************************************************
+     *  Pre-Test #2:
      *******************************************************/
     test("Getting to the contacts page", async () => {
         expect(await Contacts.Tests.T1()).toBe(true);

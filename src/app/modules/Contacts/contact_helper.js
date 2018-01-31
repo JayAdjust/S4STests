@@ -48,7 +48,10 @@ export const Contact = {
         await page.type("input[name=postal_code]", postalCode);
 
         // enter street address
-        await page.type(".address-field.form-group.std input", address)
+        await page.focus(".address-field.form-group.std input");
+        await page.type(".address-field.form-group.std input", address);
+
+        await page.waitFor(2000);
 
         return true;
     }

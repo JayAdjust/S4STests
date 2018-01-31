@@ -24,24 +24,23 @@ export const SignIn = {
         browser = _.GetBrowser();
     },
     onSignIn: async (email, pass) => {
-	    await page.waitFor(50);
 	    await page.click("input[name=email]");
 	    await ClearUsername();
-	    await page.type("input[name=email]", email);
+	    await page.type("input[name=email]", email, { delay: 15 });
 	    await page.click("input[name=password]");
 	    await ClearPassword();
-	    await page.type("input[name=password]", pass);
+	    await page.type("input[name=password]", pass, { delay: 15 });
 	    await page.click(".btn.btn-sign-up");
 	    await page.waitFor(1000);
 
 	    return !!(await page.$('.side-bar'));
     },
     onLogout: async () => {
-	    await page.waitFor(1000);
+	    await page.waitFor(300);
 	    await page.click(".nav-profile-options");
 	    await page.waitFor(1000);
 	    await page.click(".nav-menu-items div:nth-child(5)");
-	    await page.waitFor(1000);
+	    await page.waitFor(300);
 
 	    return !(await page.$('.side-bar'));
     }
