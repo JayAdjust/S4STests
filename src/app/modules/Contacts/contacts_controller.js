@@ -6,10 +6,10 @@ import { Contact } from './contact_helper';
  */ 
 export const Tests = {
     Setup: async () => {
-        
+        page = _.GetPage();
     },
         
     T1: async () => {
-                
+        
     }
 }
