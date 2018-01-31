@@ -13,5 +13,4 @@ export const Contact = {
         await page.click(".sub-routes div:nth-child(2)");
         await page.waitFor(1500);
     },
-
 }
