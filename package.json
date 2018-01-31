@@ -14,10 +14,12 @@
     "babel-preset-react": "6.24.1",
     "faker": "4.1.0",
     "jest": "22.1.4",
+    "nodemon": "1.14.11",
     "puppeteer": "1.0.0"
   },
   "scripts": {
-    "start": "node ./src/app/index.js"
+    "start": "node_modules/.bin/nodemon ./src/app/index.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",

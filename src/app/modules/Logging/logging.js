@@ -7,10 +7,6 @@ function printLine(msg) {
 }
 
 function debugVariable(v) {
-	debugVar(v);
-}
-
-function debugVar(v) {
 	printLine("");
 	printLine("=====DEBUGGING VARIABLE=====");
 	printLine(v);
@@ -39,9 +35,6 @@ export const Log = {
     },
     print: (msg) => {
 	    process.stdout.write(msg);
-    },
-    debugVar: (v) => {
-	    debugVariable(v);
     },
     debugVariable: (v) => {
 	    printLine("");
