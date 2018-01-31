@@ -1,9 +1,0 @@
-
-/*
- *  Fields:
- * 
- * 
- */
-const XBorderShipment = {
-
-}
