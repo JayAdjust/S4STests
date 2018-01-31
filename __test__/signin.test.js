@@ -1,5 +1,5 @@
-import { _ } from '../src/app/modules/StartUp/startUp_controller';
-import * as SignIn from '../src/app/modules/SignIn/signIn_controller';
+import { _ } from '../src/app/modules/Start/start_controller';
+import * as SignIn from '../src/app/modules/Signin/signin_controller';
 
 beforeAll(async () => {
     await _.Run();
@@ -12,33 +12,45 @@ afterAll(() => {
 });
 
 describe("Sign In/Logout", () => {
+    /*******************************************************
+     *  Test #1:
+     *******************************************************/
     test("Signing in with an invalid email", async () => {
-        let result = await SignIn.Tests.T1();
-        expect(result).toBe(true);
+        expect(await SignIn.Tests.T1()).toBe(true);
     }, 16000);
 
+    /*******************************************************
+     *  Test #2:
+     *******************************************************/
     test("Signing in with an invalid password", async () => {
-        let result = await SignIn.Tests.T2();
-        expect(result).toBe(true);
+        expect(await SignIn.Tests.T2()).toBe(true);
     }, 16000);
 
+    /*******************************************************
+     *  Test #3:
+     *******************************************************/
     test("Signing in with a blank password", async () => {
-        let result = await SignIn.Tests.T3();
-        expect(result).toBe(true);
+        expect(await SignIn.Tests.T3()).toBe(true);
     }, 16000);
 
+    /*******************************************************
+     *  Test #4:
+     *******************************************************/
     test("Signing in with no email or password", async () => {
-        let result = await SignIn.Tests.T4();
-        expect(result).toBe(true);
+        expect(await SignIn.Tests.T4()).toBe(true);
     }, 16000);
 
+    /*******************************************************
+     *  Test #5:
+     *******************************************************/
     test("Signing in with valid credentials", async () => {
-        let result = await SignIn.Tests.T5();
-        expect(result).toBe(true);
+        expect(await SignIn.Tests.T5()).toBe(true);
     }, 16000);
-/*
+
+    /*******************************************************
+     *  Test #6:
+     *******************************************************/
     test("Logout", async () => {
-        expect().toBe(true);
+        expect(await SignIn.Tests.T6()).toBe(true);
     }, 16000);
-*/
 });

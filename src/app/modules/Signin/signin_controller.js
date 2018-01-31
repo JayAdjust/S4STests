@@ -1,4 +1,4 @@
-import { _ } from '../StartUp/startUp_controller';
+import { _ } from '../Start/start_controller';
 import { Log } from '../Logging/logging';
 import faker from "faker";
 
@@ -9,12 +9,6 @@ let page;
 export const Tests = {
 	Setup: async () => {
 		page = _.GetPage();
-	},
-	ClearTextBoxes: async () => {
-		await page.evaluate(function() {
-			document.querySelector('input[name=email]').value = "";
-			document.querySelector('input[name=password]').value = "";
-		});
 	},
 
 	T1: async () => {
@@ -35,6 +29,10 @@ export const Tests = {
 
 	T5: async () => {
 		return await onSignIn(VALID_EMAIL, VALID_PASS); 
+	},
+
+	T6: async () => {
+		return await onLogout();
 	}
 }
 
@@ -69,7 +67,7 @@ async function ClearPassword(){
 	});
 }
 async function onSignIn(email, pass) {
-	await page.waitFor(1500);
+	await page.waitFor(1000);
 
 	await page.click("input[name=email]");
 	await ClearUsername();
@@ -83,4 +81,15 @@ async function onSignIn(email, pass) {
 	await page.waitFor(1000);
 
 	return !!(await page.$('.side-bar'));
+}
+async function onLogout(){
+	await page.waitFor(1000);
+
+	await page.click(".nav-profile-options");
+	await page.waitFor(1000);
+
+	await page.click(".nav-menu-items div:nth-child(5)");
+	await page.waitFor(1000);
+
+	return !(await page.$('.side-bar'));
 }

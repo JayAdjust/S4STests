@@ -1,4 +1,4 @@
-import { _ } from '../StartUp/startUp_controller';
+import { _ } from '../Start/start_controller';
 import { Log } from '../Logging/logging';
 
 let page;

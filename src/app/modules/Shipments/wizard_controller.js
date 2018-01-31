@@ -1,4 +1,4 @@
-import { _ } from '../StartUp/startUp_controller';
+import { _ } from '../Start/start_controller';
 import { Log } from '../Logging/logging';
 import { Wizard } from './shipment_helper';
 
@@ -38,7 +38,15 @@ async function CreateXBorderShipment(from, to){
 	// PRODUCTS PAGE
 
 }
+export const Tests = {
+	Setup: async () => {
 
+	},
+
+	T1: async () => {
+		
+	}
+}
 export const Run = async() => {
 	page = _.GetPage();
 	browser = _.GetBrowser();

@@ -1,4 +1,4 @@
-import { _ } from '../StartUp/startUp_controller';
+import { _ } from '../Start/start_controller';
 import { Log } from '../Logging/logging';
 import { Quick } from './shipment_helper';
 
@@ -13,6 +13,16 @@ async function CreateXBorderShipment(from, to){
     await Quick.GoToQuick();
 }
 
+
+export const Tests = {
+    Setup: async () => {
+        
+    },
+        
+    T1: async () => {
+                
+    }
+}
 export const Run = async() => {
     page = _.GetPage();
     browser = _.GetBrowser();

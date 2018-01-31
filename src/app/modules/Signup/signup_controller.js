@@ -1,4 +1,4 @@
-import { _ } from '../StartUp/startUp_controller';
+import { _ } from '../Start/start_controller';
 import { Log } from '../Logging/logging';
 import faker from "faker";
 
@@ -216,22 +216,14 @@ export const Run = async() => {
 
 // returns true if signed up, false otherwise
 async function onSignUp(email, newCompany, companyName, firstName, lastName, password, confirmPassword, birthdayMonth, birthdayDay, language) {
-	// focus on the email textbox
-	await page.focus("input[name=email]");
-
 	// enter email
 	await page.type("input[name=email]", email);
 
 	// check the "is this a new company?"
-	await page.click(".checkbox-custom");
-
-	// check the "is this a new company?"
-	if (newCompany) {
-		await page.click(".checkbox-custom");
-	}
-
 	// enter copmpany name
 	if (newCompany) {
+		await page.click(".checkbox-custom");
+		await page.waitFor(500);
 		await page.type("input[name=company]", companyName);
 	} else {
 		await page.type("input[name=code]", companyName);
