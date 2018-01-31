@@ -9,7 +9,9 @@ let browser;
  */ 
 export const Tests = {
 	Setup: async () => {
-
+		page = _.GetPage();
+		browser = _.GetBrowser();
+		Wizard.Setup();
 	},
 
 	T1: async () => {

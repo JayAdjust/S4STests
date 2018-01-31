@@ -1,15 +1,12 @@
 import { _ } from '../Start/start_controller';
 import { Quick } from './shipment_helper';
 
-let page;
-let browser;
-
 /**
  * Tests for Jest
  */ 
 export const Tests = {
     Setup: async () => {
-        
+        Quick.Setup();
     },
         
     T1: async () => {

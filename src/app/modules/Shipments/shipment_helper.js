@@ -169,9 +169,9 @@ export const Wizard = {
 		await page.click(".final-ship");
 	},
 
-	SetupPageAndBrowser: async(_page, _browser) => {
-		page = _page;
-		browser = _browser;
+	Setup: async() => {
+		page = _.GetPage();
+		browser = _.GetBrowser();
 	}
 }
 
@@ -186,8 +186,8 @@ export const Quick = {
 		await page.waitFor(1500);
 	},
 
-	SetupPageAndBrowser: async () => {
-		page = _page;
-		browser = _browser;
+	Setup: async() => {
+		page = _.GetPage();
+		browser = _.GetBrowser();
 	}
 }
