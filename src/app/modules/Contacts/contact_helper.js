@@ -1,6 +1,7 @@
 import { _ } from '../Start/start_controller';
 
-let { page, browser };
+let page;
+let browser;
 
 export const Contact = {
     SetupPageAndBrowser: async() => {

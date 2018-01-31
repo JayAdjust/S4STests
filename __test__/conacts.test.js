@@ -10,3 +10,7 @@ beforeAll(async () => {
 afterAll(() => {
     _.GetBrowser().close();
 });
+
+
+describe("Sign In/Logout", () => {
+});

@@ -4,7 +4,6 @@ import { SignIn } from './signin_helper';
 
 const VALID_EMAIL = "Jeremy@dicom.com";
 const VALID_PASS = "test123";
-let page;
 
 export const Tests = {
 	Setup: () => {
