@@ -17,14 +17,8 @@ describe("Signing Up", () => {
      *******************************************************/
     test("Getting to the sign up page", async () => {
         let page = _.GetPage(); 
-
-        // if we're not in the sign up page, go there!
-	    var signUpButtonExists = !!(await page.$('.link-sign-up'));
-	    if (signUpButtonExists) {
-		    await page.click(".link-sign-up");
-	    }
+		await page.click(".link-sign-up");
     }, 16000);
-
 
     /*******************************************************
      *  Test #1:

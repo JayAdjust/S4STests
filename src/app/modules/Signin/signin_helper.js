@@ -24,7 +24,7 @@ export const SignIn = {
         browser = _.GetBrowser();
     },
     onSignIn: async (email, pass) => {
-	    await page.waitFor(1000);
+	    await page.waitFor(50);
 	    await page.click("input[name=email]");
 	    await ClearUsername();
 	    await page.type("input[name=email]", email);
