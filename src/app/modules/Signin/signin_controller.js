@@ -7,31 +7,31 @@ const VALID_PASS = "test123";
 let page;
 
 export const Tests = {
-	Setup: async () => {
-		page = _.GetPage();
+	Setup: () => {
+		SignIn.Setup();
 	},
 
 	T1: async () => {
-		return !await onSignIn(await faker.internet.email(), await faker.internet.password());
+		return !await SignIn.onSignIn(await faker.internet.email(), await faker.internet.password());
 	},
 
 	T2: async () => {
-		return !await onSignIn(VALID_EMAIL, await faker.internet.password());
+		return !await SignIn.onSignIn(VALID_EMAIL, await faker.internet.password());
 	},
 
 	T3: async () => {
-		return !await onSignIn(VALID_EMAIL, "");
+		return !await SignIn.onSignIn(VALID_EMAIL, "");
 	},
 
 	T4: async () => {
-		return !await onSignIn("", "");
+		return !await SignIn.onSignIn("", "");
 	},
 
 	T5: async () => {
-		return await onSignIn(VALID_EMAIL, VALID_PASS); 
+		return await SignIn.onSignIn(VALID_EMAIL, VALID_PASS); 
 	},
 
 	T6: async () => {
-		return await onLogout();
+		return await SignIn.onLogout();
 	}
 }

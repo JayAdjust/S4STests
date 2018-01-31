@@ -3,6 +3,10 @@ import { _ } from '../Start/start_controller';
 let page;
 let browser;
 
+
+/**
+ * <Private Functions>
+ */
 async function GetFromContact(from){
 	await page.waitFor(100);
 	await page.click(".shipment-container.from input[name=query]");
@@ -124,6 +128,9 @@ async function AddAdditionalService(service){
 			break;
 	}
 }
+/**
+ * </Private Functions>
+ */
 
 export const Wizard = {
 

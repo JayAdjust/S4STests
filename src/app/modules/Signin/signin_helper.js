@@ -1,5 +1,8 @@
 import { _ } from '../Start/start_controller';
 
+// FIELDS
+let page;
+let browser;
 
 /**
  * Private Functions
@@ -16,6 +19,10 @@ async function ClearPassword(){
 }
 
 export const SignIn = {
+    Setup: () => {
+        page = _.GetPage();
+        browser = _.GetBrowser();
+    },
     onSignIn: async (email, pass) => {
 	    await page.waitFor(1000);
 	    await page.click("input[name=email]");
