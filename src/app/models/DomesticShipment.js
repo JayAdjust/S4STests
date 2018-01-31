@@ -1,0 +1,9 @@
+/*
+ *  --Fields--
+ *  from:
+ *  to:
+ *  
+ */
+DomesticShipment = {
+
+}

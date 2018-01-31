@@ -1,0 +1,9 @@
+
+/*
+ *  Fields:
+ * 
+ * 
+ */
+const XBorderShipment = {
+
+}
