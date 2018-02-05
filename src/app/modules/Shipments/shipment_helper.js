@@ -202,17 +202,6 @@ async function ChangePackageInstructions(instructions){
 	});
 	await page.type("input[name=instructions]", instructions);
 }
-async function addProducts(){
-	await page.click("input[name=productName]");
-	await page.type("input[name=productName]", "ps3");
-	await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
-	await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
-
-	await page.click("input[name=productName]");
-	await page.type("input[name=productName]", "knife");
-	await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
-	await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
-}
 async function GenerateParcelAdditionalServices(){
 	// Generate a random number of services to select
 	let numServices = Math.floor(Math.random() * 4);
@@ -374,7 +363,7 @@ export const Wizard = {
 			packages.push(_package);
 		}
 
-		await page.waitFor(2000);
+		await page.waitFor(3000);
 		await page.click(".btn.next");
 
 		return packages;
@@ -387,16 +376,28 @@ export const Wizard = {
 			duty: dutyOptions[Math.floor(Math.random() * dutyOptions.length)]
 		};
 
-		await addProducts();
+		await page.click("input[name=productName]");
+		await page.type("input[name=productName]", "ps3");
+		await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
+		await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
+	
+		// Description
+		await page.click("input[name=description]");
+		await page.type("input[name=description]", details.description);
+
+		await page.click("input[name=productName]");
+		await page.type("input[name=productName]", "knife");
+		await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
+		await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
+
+		// Description
+		await page.click("input[name=description]");
+		await page.type("input[name=description]", details.description);
 
 		await page.waitFor(2000);
 
 		// Purpose
 		await page.select("select[name=purpose]", details.purpose);
-
-		// Description
-		await page.click("input[name=description]");
-		await page.type("input[name=description]", details.description);
 
 		// Broker
 		await page.select("select[name=broker_id]", details.broker);
@@ -405,7 +406,7 @@ export const Wizard = {
 		await page.select("select[name=bill_to]", details.duty);
 
 		// Click on next
-		await page.waitFor(2000);
+		await page.waitFor(3000);
 		await page.click(".btn.next");
 
 	},
