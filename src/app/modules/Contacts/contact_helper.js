@@ -10,16 +10,18 @@ export const Contact = {
     },
     
     GoToContacts: async () => {
-        //await page.waitFor(1000);
+        // hover over the "Manage" section in the sidebar
         await page.hover(".menu-item.hover-over.manage");
-        //await page.waitFor(500);
+        await page.waitFor(500);
+
+        // click the 1st item that appears (Contacts)
         await page.click(".sub-route div:nth-child(1)");
-        //await page.waitFor(1000);
+        await page.waitFor(300);
 
         return !!(await page.$(".manage-contacts-header"));
     },
 
-    onCreateContact: async (customerID, billingAccount, company, country, postalCode, address, addressLine2, city, province, attentionTo, phone, phoneExt, email, mobilePhone) => {
+    onCreateContact: async (customerID, billingAccount, company, country, postalCode, address, addressLine2, city, province, attentionTo, phone, phoneExt, email, mobilePhone, sameCompanyName) => {
         // click the "+ create contact" button
         await page.click(".dicon-add-new");
 
@@ -41,11 +43,31 @@ export const Contact = {
         await page.focus("input[name=company_name]");
         await page.waitFor(20);
         await page.type("input[name=company_name]", company);
+        await page.waitFor(100);
+
+        if (!sameCompanyName) {
+            var num = 0;
+            var autoCompleteCompanyExists = !!(await page.$(".company-address-list"));
+            while (autoCompleteCompanyExists) {
+                num++;
+                await page.focus("input[name=company_name]");
+                await page.waitFor(20);
+
+                await page.evaluate(function() {
+                    document.querySelector('input[name=company_name]').value = "";
+                });
+
+                await page.type("input[name=company_name]", company + " (" + num + ")");
+
+                await page.waitFor(1000);
+            }
+        }
 
         // remove the autocomplete window when entering a company name
         // simply focus on something else will remove it
         // can cause bugs otherwise
         await page.focus("input[name=customer_id]");
+        await page.waitFor(200);
 
         // enter the country
         await page.focus("select[name='country']");
@@ -54,7 +76,8 @@ export const Contact = {
 
         // enter the postal code / zip code
         await page.focus("input[name=postal_code]");
-        await page.waitFor(20);
+        await page.waitFor(500); // postal code/zip code needs more of a delay, bugs can/will occur otherwise
+        await page.focus("input[name=postal_code]"); // needed again for some reason
         await page.type("input[name=postal_code]", postalCode);
 
         // enter main street address
@@ -76,7 +99,16 @@ export const Contact = {
 
             if (autoCompleteWidnowExists) {
                 await page.click(".auto-address-item div:nth-child(1)");
-                console.log("AUTOCOMPLETE ADDRESS SHOW!!!");
+            } else {
+                // when the auto complete window didn't show up, type in the city manually
+                await page.focus("input[name=city]");
+                await page.waitFor(20);
+                await page.type("input[name=city]", city);
+
+                // removed - enter a valid postal code and it fills this in for you
+                //await page.focus("input[name=state]");
+                //await page.waitFor(20);
+                //await page.type("input[name=state]", province);
             }
 
             // enter street address line #2
@@ -122,11 +154,16 @@ export const Contact = {
             //await page.waitFor(2000);
 
             // click the "Add Contact" button
-            //await page.click("btn btn-md.btn-secondary.inline.floating");
+            await page.click(".btn.btn-md.btn-secondary.inline.floating");
+            await page.waitFor(100);
 
-            await page.waitFor(4000);
-    
-            return true;
+            // if an error occured and was caught on the clientside, a red box appears around the textbox
+            var textboxErrorExists = !!(await page.$(".help-block"));
+            return !textboxErrorExists;
         }
     }
+}
+
+async function ClearTextBoxes() {
+
 }
