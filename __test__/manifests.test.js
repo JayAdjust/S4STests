@@ -33,13 +33,13 @@ describe("Manifests", () => {
      *  Pre-Test #3: Go to manifest page
      *******************************************************/
     test("Go to manifest page", async () => {
-        expect(await Manifests.Tests.T1()).toBe(true);
+        expect(await Manifests.Tests.GoToManifest()).toBe(true);
     }, 16000);
 
     /*******************************************************
      *  Test #1:
      *******************************************************/
     test("test #1", async () => {
-        expect(await Manifests.Tests.T2()).toBe(true);
+        expect(await Manifests.Tests.T1()).toBe(true);
     }, 16000);
 });

@@ -8,7 +8,6 @@ export const Manifest = {
 		page = _.GetPage();
 		browser = _.GetBrowser();
     },
-
     GoToManifests: async () => {
         // click the shipments tab in the sidebar
         await page.waitFor(100);
@@ -17,7 +16,6 @@ export const Manifest = {
 
         return true;
     },
-
     onGenerateManifest: async (manifestType, manifestService, showManifestPricing, arrayOfManifestsToTake) => {
         // click the "Manifest" print button
         await page.click(".shipments-action-button");
@@ -32,24 +30,22 @@ export const Manifest = {
         // change service if necessary
         // 3 types: dicom_express_canada, dicom_ec_usa, dicom_freight_canada
         await page.select(".manifest-selection-container select[name=interfaced_service]", manifestService);
-
-        // click "Show manifest pricing" if necessary
-        if (showManifestPricing) {
-            await page.click(".checkbox-label");
-        }
+        await page.waitFor(1000); // big timing window
 
         // if there are no manifests to be made, return false
-        var noManifests = !!(await page.$(".no-addresses"));
-        if (noManifests) {
-            return false;
-        }
-
         // get the total amount of manifests
         var totalManifests = await page.evaluate(() => {
             return document.getElementsByClassName("pickup-address-item").length;
         });
 
-        console.log("GOT TOTAL MANIFESTS: " + totalManifests);
+        if (totalManifests === 0) {
+            return false;
+        }
+
+        // click "Show manifest pricing" if necessary
+        if (showManifestPricing) {
+            await page.click(".checkbox-label");
+        }
 
         // update the arrayOfManifestsToTake array to loop through later
         if (arrayOfManifestsToTake === "all") {
@@ -57,10 +53,7 @@ export const Manifest = {
             for (var i = 0; i < totalManifests; i++) {
                 arrayOfManifestsToTake.push(i + 1);
             }
-        } else if (arrayOfManifestsToTake === "someRandom") {
-            //console.log("TAKING SOME AT RANDOM!");
-            // TODO: take some at random
-
+        } else if (arrayOfManifestsToTake === "some") {
             arrayOfManifestsToTake = [];
             for (var i = 0; i < totalManifests; i++) {
                 var randomBoolean = (Math.random() >= 0.5);
@@ -71,14 +64,18 @@ export const Manifest = {
         }
 
         // loop through the array of manifests to take and select them
+        // TODO: fix this
+        console.log("Total manifests: " + totalManifests + ". Selecting manifests: " + arrayOfManifestsToTake);
         for (var i = 0; i < arrayOfManifestsToTake.length; i++) {
-            console.log("MANIFESTS TO TAKE: " + arrayOfManifestsToTake[i]);
+            console.log("in loop for manifest: " + arrayOfManifestsToTake[i])
+            let x = arrayOfManifestsToTake[i] + 1;
+            await page.click(".pickup-address-list div:nth-child(" + x + ")");
         }
 
         // click the "Generate Manifest" button
         //await page.click(".btn.btn-md.btn-secondary.inline");
 
-        await page.waitFor(4000);
+        await page.waitFor(10000);
         return true;
     }
 };

@@ -8,7 +8,6 @@ export const Contact = {
 		page = _.GetPage();
 		browser = _.GetBrowser();
     },
-    
     GoToContacts: async () => {
         // hover over the "Manage" section in the sidebar
         await page.hover(".menu-item.hover-over.manage");
@@ -20,7 +19,6 @@ export const Contact = {
 
         return !!(await page.$(".manage-contacts-header"));
     },
-
     onCreateContact: async (customerID, billingAccount, company, country, postalCode, address, addressLine2, city, province, attentionTo, phone, phoneExt, email, mobilePhone, wantsSameCompanyName) => {
         // click the "+ create contact" button
         await page.click(".dicon-add-new");
