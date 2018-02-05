@@ -374,7 +374,7 @@ export const Wizard = {
 			packages.push(_package);
 		}
 
-		await page.waitFor(3000);
+		await page.waitFor(2000);
 		await page.click(".btn.next");
 
 		return packages;
@@ -403,6 +403,10 @@ export const Wizard = {
 
 		// If duty applies 
 		await page.select("select[name=bill_to]", details.duty);
+
+		// Click on next
+		await page.waitFor(2000);
+		await page.click(".btn.next");
 
 	},
 	ConfirmAndPay: async(readyBy, closingTime, pickupPoint) => {
@@ -442,7 +446,7 @@ export const Quick = {
 	// 
 	GoToQuick: async() => {
 		await page.hover(".menu-item.active.hover-over.shipping");
-		await page.waitFor(500);
+		await page.waitForSelector(".sub-routes div:nth-child(3)");
 		await page.click(".sub-routes div:nth-child(3)");
 	},
 
