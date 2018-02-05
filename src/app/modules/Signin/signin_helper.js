@@ -36,9 +36,9 @@ export const SignIn = {
 	    return !!(await page.$('.side-bar'));
     },
     onLogout: async () => {
-	    await page.waitFor(300);
+	    await page.waitForSelector(".nav-profile-options");
 	    await page.click(".nav-profile-options");
-	    await page.waitFor(1000);
+	    await page.waitForSelector(".nav-menu-items div:nth-child(5)");
 	    await page.click(".nav-menu-items div:nth-child(5)");
 	    await page.waitFor(300);
 

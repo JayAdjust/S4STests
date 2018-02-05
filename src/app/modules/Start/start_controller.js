@@ -22,6 +22,10 @@ export const _ = {
             height: 0,
             deviceScaleFactor: 1
         });
+
+        let pages = await browser.pages();
+        await pages[0].close();
+
         return true;
     },
     ChangeToDev: async() => {
