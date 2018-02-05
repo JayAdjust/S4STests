@@ -1,6 +1,6 @@
 import { _ } from '../src/app/modules/Start/start_controller';
 import * as Wizard from '../src/app/modules/Shipments/wizard_controller';
-import { SignIn, DOme } from '../src/app/modules/Signin/signin_helper';
+import { SignIn } from '../src/app/modules/Signin/signin_helper';
 
 beforeAll(async () => {
     await _.Run();
@@ -18,7 +18,7 @@ describe("Wizard Domestic Shipment Tests", () => {
     /*******************************************************
      *  Pre-Test:
      *******************************************************/
-    test("Signing in", async () => {
+    test("Pre-Tests, Signing in...", async () => {
         expect(await SignIn.onSignIn("Jeremy@dicom.com", "test123")).toBe(true);
     });
 
