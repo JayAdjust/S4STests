@@ -21,9 +21,13 @@ export const Contact = {
         return !!(await page.$(".manage-contacts-header"));
     },
 
-    onCreateContact: async (customerID, billingAccount, company, country, postalCode, address, addressLine2, city, province, attentionTo, phone, phoneExt, email, mobilePhone, sameCompanyName) => {
+    onCreateContact: async (customerID, billingAccount, company, country, postalCode, address, addressLine2, city, province, attentionTo, phone, phoneExt, email, mobilePhone, wantsSameCompanyName) => {
         // click the "+ create contact" button
         await page.click(".dicon-add-new");
+        await page.waitFor(20);
+
+        // clear all the textboxes
+        await ClearAllTextBoxes();
 
         // enter the customer ID
         if (customerID !== "") {
@@ -45,9 +49,10 @@ export const Contact = {
         await page.type("input[name=company_name]", company);
         await page.waitFor(100);
 
-        if (!sameCompanyName) {
+        // TODO: too buggy
+        if (!wantsSameCompanyName) {
             var num = 0;
-            var autoCompleteCompanyExists = !!(await page.$(".company-address-list"));
+            var autoCompleteCompanyExists = !!(await page.$(".company-address-list div:nth-child(1)"));
             while (autoCompleteCompanyExists) {
                 num++;
                 await page.focus("input[name=company_name]");
@@ -56,10 +61,12 @@ export const Contact = {
                 await page.evaluate(function() {
                     document.querySelector('input[name=company_name]').value = "";
                 });
+                await page.waitFor(1000);
 
                 await page.type("input[name=company_name]", company + " (" + num + ")");
-
                 await page.waitFor(1000);
+
+                var autoCompleteCompanyExists = !!(await page.$(".company-address-list div:nth-child(1)"));
             }
         }
 
@@ -164,6 +171,56 @@ export const Contact = {
     }
 }
 
-async function ClearTextBoxes() {
+async function ClearAllTextBoxes() {
+    await page.evaluate(function() {
+        document.querySelector('input[name=customer_id]').value = "";
+    });
 
+    await page.evaluate(function() {
+        document.querySelector('input[name=billing_account]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=company_name]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=postal_code]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('.address-field.form-group.std input').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=street_line_2]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=city]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=state]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=person_full_name]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=phone]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=phone_ext]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=email]').value = "";
+    });
+
+    await page.evaluate(function() {
+        document.querySelector('input[name=mobile_phone]').value = "";
+    });
 }
