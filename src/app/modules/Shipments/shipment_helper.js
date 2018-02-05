@@ -6,7 +6,8 @@ const measurements = ["metric", "imperial"];
 const parcelPackages = ["EV", "BX"];
 const freightPackages = ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"];
 const additionalSerivces = ["HPF","NCV","TRD","WKD","DCV"];
-const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup","Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
+const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup",
+	"Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
 const purposes = ["COM","PER","DOC","RET"];
 const dutyOptions = ["SHIPPER","RECIPIENT","THIRD_PARTY"];
 const broker = "cisuu7xyi000o0yghovn49w6u";
@@ -126,56 +127,26 @@ async function changePRE(value){
 // service:
 async function AddAdditionalService(service){
 	switch(service){
-		case "HPF":
-			await page.click("input[name=HFP]");
-			break;
-		case "NCV":
-			await page.click("input[name=NCV]");
-			break;
-		case "TRD":
-			await page.click("input[name=TRD]");
-			break;
-		case "WKD":
-			await page.click("input[name=WKD]");
-			break;
-		case "DCV":
-			await page.click("input[name=DCV]");
-			break;
-		case "Appointment":
-			await page.click("input[name=Appointment]");
-			break;
-		case "COD":
-			await page.click("input[name=COD]");
-			break;
-		case "Heating":
-			await page.click("input[name=Heating]");
-			break;
-		case "Hold for pick up Saturday":
-			await page.click("input[name=Hold for pick up Saturday]");
-			break;	
-		case "Hold for pickup":
-			await page.click("input[name=Hold for pickup]");
-			break;	
-		case "Inside delivery":
-			await page.click("input[name=Inside delivery]");
-			break;	
-		case "Private house":
-			await page.click("input[name=Private house]");
-			break;	
-		case "Private house pick up":
-			await page.click("input[name=Private house pick up]");
-			break;	
-		case "Tailgate":
-			await page.click("input[name=Tailgate]");
-			break;
-		case "Tailgate pick up":
-			await page.click("input[name=Tailgate pick up]");
-			break;
-		case "DCV":
-			await page.click("input[name=DCV]");
-			break;
-		default:
-			break;
+		// PARCEL
+		case "HPF": await page.click("input[name=HFP]"); break;
+		case "NCV": await page.click("input[name=NCV]"); break;
+		case "TRD": await page.click("input[name=TRD]"); break;
+		case "WKD": await page.click("input[name=WKD]"); break;
+		case "DCV": await page.click("input[name=DCV]"); break;
+
+		// FREIGHT
+		case "Appointment": await page.click("input[name=Appointment]"); break;
+		case "COD": await page.click("input[name=COD]"); break;
+		case "Heating": await page.click("input[name=Heating]"); break;
+		case "Hold for pick up Saturday": await page.click("input[name=Hold for pick up Saturday]"); break;	
+		case "Hold for pickup": await page.click("input[name=Hold for pickup]"); break;	
+		case "Inside delivery": await page.click("input[name=Inside delivery]"); break;	
+		case "Private house": await page.click("input[name=Private house]"); break;	
+		case "Private house pick up": await page.click("input[name=Private house pick up]"); break;	
+		case "Tailgate": await page.click("input[name=Tailgate]"); break;
+		case "Tailgate pick up": await page.click("input[name=Tailgate pick up]"); break;
+		case "DCV": await page.click("input[name=DCV]"); break;
+		default: break;
 	}
 }
 async function ChangeMeasurement(measurement){
