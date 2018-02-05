@@ -25,7 +25,7 @@ describe("Contacts", () => {
     }, 16000);
 
     /*******************************************************
-     *  Pre-Test #2:
+     *  Pre-Test #2: Actually getting to the contacts page
      *******************************************************/
     test("Getting to the contacts page", async () => {
         expect(await Contacts.Tests.T1()).toBe(true);
