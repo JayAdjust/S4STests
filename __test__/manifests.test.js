@@ -21,4 +21,25 @@ describe("Manifests", () => {
     test("Signing in", async () => {
         expect(await SignIn.onSignIn("Jeremy@dicom.com", "test123")).toBe(true);
     }, 16000);
+
+    /*******************************************************
+     *  Pre-Test #2: To generate manifest, you have to create orders
+     *******************************************************/
+    test("Create test orders", async () => {
+        expect(true).toBe(true);
+    }, 16000);
+
+    /*******************************************************
+     *  Pre-Test #3: Go to manifest page
+     *******************************************************/
+    test("Go to manifest page", async () => {
+        expect(await Manifests.Tests.T1()).toBe(true);
+    }, 16000);
+
+    /*******************************************************
+     *  Test #1:
+     *******************************************************/
+    test("test #1", async () => {
+        expect(await Manifests.Tests.T2()).toBe(true);
+    }, 16000);
 });

@@ -18,7 +18,7 @@ export const Tests = {
     },
 
     T3: async () => {
-        return await Contact.onCreateContact("", "", "Jared Company", "CA", "H9K1M2", "", "", "Montreal", "Quebec", "Some Contact", "5141111111", "", "", "", false);
+        return await Contact.onCreateContact("", "", "Jared Company 1", "CA", "H9K1M2", "", "", "Montreal", "Quebec", "Some Contact", "5141111111", "", "", "", false);
     },
 
     T4: async () => {
