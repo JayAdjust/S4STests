@@ -253,7 +253,7 @@ export const Wizard = {
 		await changeBillingAccount(account);
 		
 		// Wait for the button to activate
-		await page.waitFor(2000);
+		await page.waitFor(3000);
 		await page.click(".btn.next");
 	},
 	PackageDetails: async(service, account, packageCount) => {
@@ -294,7 +294,7 @@ export const Wizard = {
 			packages.push(_package);
 		}
 
-		await page.waitFor(1000);
+		await page.waitFor(3000);
 		await page.click(".btn.next");
 
 		return packages;

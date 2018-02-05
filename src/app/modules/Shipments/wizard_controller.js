@@ -56,7 +56,10 @@ let browser;
 /**
  * Private methods
  */ 
-async function CreateDomesticShipment(from, to, type, account, serviceType, pickupReady, pickupClosing, pickupPoint){
+async function CreateDomesticShipment(from, to, type, account, serviceType, pickupReady, pickupClosing, pickupPoint, name){
+	let pages = await browser.pages();
+	let beforeCount = pages.length;
+
 	await Wizard.GoToWizard();
 
 	// Address Details
@@ -68,17 +71,23 @@ async function CreateDomesticShipment(from, to, type, account, serviceType, pick
 
 	// Package Details
 	let packages = await Wizard.PackageDetails(serviceType, account, Math.floor(Math.random() * 3) + 1);
+	await page.waitFor(1000);
 
 	if(!(await page.$(".confirm-status-banner")))
 		return false;
 	
-	await page.waitFor(1000);
-
 	// Confirm & Pay
 	let refsAndServices = await Wizard.ConfirmAndPay(pickupReady, pickupClosing, pickupPoint);
 
-
 	// Printing validation here
+	pages = await browser.pages();
+	while(pages.length < beforeCount + 1){
+		await page.waitFor(1000);
+		pages = await browser.pages();
+	}
+	let popup = pages.pop();
+	await popup.waitFor(7500); // Give the popup time to load
+	await popup.screenshot({path: "images/wizard/" + name + ".png"});
 	return true;
 }
 
@@ -116,7 +125,7 @@ export const Tests = {
 export const Domestic = {
 	T1: async () => {
 		return await CreateDomesticShipment("Dicom Shipping Test", "Jeremy Corp", PAYMENT_TYPES.prepaid, ACCOUNTS.ca_parcel, SERVICE_TYPES.ground, 
-					PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor);
+					PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor, "wizard_test_one");
 	},
 }
 
