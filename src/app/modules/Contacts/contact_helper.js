@@ -27,7 +27,7 @@ export const Contact = {
         await page.waitFor(20);
 
         // clear all the textboxes
-        await ClearAllTextBoxes();
+        //await ClearAllTextBoxes();
 
         // enter the customer ID
         if (customerID !== "") {
@@ -49,26 +49,37 @@ export const Contact = {
         await page.type("input[name=company_name]", company);
         await page.waitFor(100);
 
-        // TODO: too buggy
+        /*
         if (!wantsSameCompanyName) {
             var num = 0;
-            var autoCompleteCompanyExists = !!(await page.$(".company-address-list div:nth-child(1)"));
-            while (autoCompleteCompanyExists) {
-                num++;
+            do {
                 await page.focus("input[name=company_name]");
                 await page.waitFor(20);
 
                 await page.evaluate(function() {
                     document.querySelector('input[name=company_name]').value = "";
                 });
-                await page.waitFor(1000);
+                await page.focus("input[name=customer_id]");
+                await page.waitFor(100);
 
-                await page.type("input[name=company_name]", company + " (" + num + ")");
-                await page.waitFor(1000);
+                if (num === 0) {
+                    await page.type("input[name=company_name]", company);
+                } else {
+                    await page.type("input[name=company_name]", company + " (" + num + ")");
+                }
+                await page.waitFor(1500);
 
                 var autoCompleteCompanyExists = !!(await page.$(".company-address-list div:nth-child(1)"));
-            }
+                num++;
+            } while (autoCompleteCompanyExists)
+        } else {
+            // just enter the company name regularly
+            await page.focus("input[name=company_name]");
+            await page.waitFor(20);
+            await page.type("input[name=company_name]", company);
+            await page.waitFor(100);
         }
+        */
 
         // remove the autocomplete window when entering a company name
         // simply focus on something else will remove it
@@ -98,7 +109,7 @@ export const Contact = {
         try {
             await page.waitFor(".auto-address-item div:nth-child(1)", {timeout: 5000});
         } catch (e) {
-            // the timeout was exceeded
+            // the timeout was exceeded, no popup window here
         } finally {
             // this code runs whether the autocomplete showed or not
             // determine if it did show up...
@@ -172,54 +183,80 @@ export const Contact = {
 }
 
 async function ClearAllTextBoxes() {
+    await page.focus("input[name=customer_id]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=customer_id]').value = "";
     });
 
+    await page.focus("input[name=billing_account]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=billing_account]').value = "";
     });
 
+    await page.focus("input[name=company_name]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=company_name]').value = "";
     });
 
+    await page.focus("input[name=postal_code]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=postal_code]').value = "";
     });
 
+    await page.focus(".address-field.form-group.std input");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('.address-field.form-group.std input').value = "";
     });
 
+    await page.focus("input[name=street_line_2]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=street_line_2]').value = "";
     });
 
+    await page.focus("input[name=city]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=city]').value = "";
     });
 
+    await page.focus("input[name=state]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=state]').value = "";
     });
 
+    await page.focus("input[name=person_full_name]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=person_full_name]').value = "";
     });
 
+    await page.focus("input[name=phone]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=phone]').value = "";
     });
 
+    await page.focus("input[name=phone_ext]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=phone_ext]').value = "";
     });
 
+    await page.focus("input[name=email]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=email]').value = "";
     });
 
+    await page.focus("input[name=mobile_phone]");
+    await page.waitFor(100);
     await page.evaluate(function() {
         document.querySelector('input[name=mobile_phone]').value = "";
     });

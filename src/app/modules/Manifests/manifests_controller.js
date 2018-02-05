@@ -8,4 +8,12 @@ export const Tests = {
     Setup: () => {
         Manifest.Setup();
     },
+
+    T1: async () => {
+        return await Manifest.GoToManifests();
+    },
+
+    T2: async() => {
+        return await Manifest.onGenerateManifest("generated", "dicom_freight_canada");
+    }
 };
