@@ -8,7 +8,6 @@ beforeAll(async () => {
     Contacts.Tests.Setup();
 
     SignIn.Setup();
-    Contacts.Tests.Setup();
 });
 
 afterAll(() => {
