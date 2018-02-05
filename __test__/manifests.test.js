@@ -25,7 +25,7 @@ describe("Manifests", () => {
     /*******************************************************
      *  Pre-Test #2: To generate manifest, you have to create orders
      *******************************************************/
-    test("Create test order", async () => {
+    test("Create test orders", async () => {
         expect(true).toBe(true);
     }, 16000);
 
