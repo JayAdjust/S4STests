@@ -67,9 +67,22 @@ export const Manifest = {
         // TODO: fix this
         console.log("Total manifests: " + totalManifests + ". Selecting manifests: " + arrayOfManifestsToTake);
         for (var i = 0; i < arrayOfManifestsToTake.length; i++) {
-            console.log("in loop for manifest: " + arrayOfManifestsToTake[i])
-            let x = arrayOfManifestsToTake[i] + 1;
-            await page.click(".pickup-address-list div:nth-child(" + x + ")");
+            console.log("in loop for manifest: " + arrayOfManifestsToTake[i]);
+
+            var element = await page.evaluate(() => {
+                //return document.getElementsByClassName("pickup-address-item")[0];
+                //var x = document.getElementsByClassName("pickup-address-list");
+                //console.log("THIS IS A TEST AHHHHHHHHHHHHHHHHHHHHHHHHHHH: " + x[0].innerHTML);
+            });
+
+            //for (var j = 0; j < element.length; j++) {
+                //console.log(element[j]);
+            //}
+
+            //await page.click(element);
+
+            //var x = arrayOfManifestsToTake[i] + 1;
+            //await page.click(".pickup-address-list div:nth-child(" + x + ")");
         }
 
         // click the "Generate Manifest" button
