@@ -1,5 +1,6 @@
 import { _ } from '../Start/start_controller';
 import { Wizard } from './shipment_helper';
+import faker from "faker";
 
 const PAYMENT_TYPES = {
 	prepaid: "PREPAID",
@@ -56,10 +57,17 @@ let browser;
 /**
  * Private methods
  */ 
+async function RestartShipment(){
+	await Wizard.GoToWizard();
+	await page.click(".dicon-redo");
+	await page.waitForSelector(".shipping-wizzard", {timeout: 10000, visible: true});
+}
+
 async function CreateDomesticShipment(from, to, type, account, serviceType, pickupReady, pickupClosing, pickupPoint, name){
 	let pages = await browser.pages();
 	let beforeCount = pages.length;
 
+	// Go to wizard
 	await Wizard.GoToWizard();
 
 	// Address Details
@@ -70,7 +78,7 @@ async function CreateDomesticShipment(from, to, type, account, serviceType, pick
 		return false;
 
 	// Package Details
-	let packages = await Wizard.PackageDetails(serviceType, account, Math.floor(Math.random() * 3) + 1);
+	let packages = await Wizard.PackageDetails(serviceType, Math.floor(Math.random() * 3) + 1);
 	await page.waitFor(1000);
 
 	if(!(await page.$(".confirm-status-banner")))
@@ -88,27 +96,43 @@ async function CreateDomesticShipment(from, to, type, account, serviceType, pick
 	let popup = pages.pop();
 	await popup.waitFor(7500); // Give the popup time to load
 	await popup.screenshot({path: "images/wizard/" + name + ".png"});
+	await popup.close();
 	return true;
 }
 
-async function CreateXBorderShipment(from, to){
+async function CreateXBorderShipment(from, to, type, account, serviceType, pickupReady, pickupClosing, pickupPoint, name){
+	// Go to wizard
 	await Wizard.GoToWizard();
-	//await ContactList.GetFromContact(from);
-	//await ContactList.GetToContact(to);
-
-	// Change PaymentType & Billing Account
-	//await Wizard.changePaymentType("PREPAID"); // just for a test
-	//await Wizard.changeBillingAccount("41562"); // just for a test
-
-	await page.waitFor(3000);
 	
-	// PACKAGE DETAILS
-	await page.click(".btn.next");
-	await page.click(".btn.btn-md.btn-secondary.inline");
-	await page.click(".btn.btn-md.btn-secondary.inline");
+	// Address Details
+	await Wizard.AddressDetails(from, to, type, account);
+	await page.waitFor(1000);
 
-	// PRODUCTS PAGE
+	if(!(await page.$(".packageForm")))
+		return false;
 
+	// Package Details
+	let packages = await Wizard.PackageDetails(serviceType, Math.floor(Math.random() * 3) + 1);
+	await page.waitFor(1000);
+
+	// Customs Details
+	await Wizard.CustomsDetails();
+	await page.waitFor(1000);
+
+	// Confirm & Pay
+	let refsAndServices = await Wizard.ConfirmAndPay(pickupReady, pickupClosing, pickupPoint);
+	
+	// Printing validation here
+	pages = await browser.pages();
+	while(pages.length < beforeCount + 1){
+		await page.waitFor(1000);
+		pages = await browser.pages();
+	}
+	let popup = pages.pop();
+	await popup.waitFor(7500); // Give the popup time to load
+	await popup.screenshot({path: "images/wizard/" + name + ".png"});
+	await popup.close();
+	return true;
 }
 
 /**
@@ -122,15 +146,19 @@ export const Tests = {
 	}
 }
 
+
+const DOMESTIC_FILENAME_PREFIX = "wizard_domestic_test_";
+const XBORDER_FILENAME_PREFIX = "wizard_xborder_test_";
 export const Domestic = {
 	T1: async () => {
 		return await CreateDomesticShipment("Dicom Shipping Test", "Jeremy Corp", PAYMENT_TYPES.prepaid, ACCOUNTS.ca_parcel, SERVICE_TYPES.ground, 
-					PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor, "wizard_test_one");
+					PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor, DOMESTIC_FILENAME_PREFIX + "one");
 	},
 }
 
 export const XBorder = {
 	T1: async () => {
-		
+		return await CreateXBorderShipment("Dicom Shipping Test", "Dicom Eastern Connection - USA", PAYMENT_TYPES.prepaid, ACCOUNTS.ca_parcel, SERVICE_TYPES.ground, 
+					PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor, XBORDER_FILENAME_PREFIX + "one");
 	},
 }

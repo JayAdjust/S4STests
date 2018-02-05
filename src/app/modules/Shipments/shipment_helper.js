@@ -6,6 +6,10 @@ const measurements = ["metric", "imperial"];
 const parcelPackages = ["EV", "BX"];
 const freightPackages = ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"];
 const additionalSerivces = ["HPF","NCV","TRD","WKD","DCV"];
+const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup","Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
+const purposes = ["COM","PER","DOC","RET"];
+const dutyOptions = ["SHIPPER","RECIPIENT","THIRD_PARTY"];
+const broker = "cisuu7xyi000o0yghovn49w6u";
 
 // FIELDS
 let page;
@@ -18,30 +22,30 @@ async function GetFromContact(from){
 	await page.waitFor(100);
 	await page.click(".shipment-container.from input[name=query]");
 	await page.type(".shipment-container.from input[name=query]", from);
-	await page.waitForSelector(".contact-entry-item");
+	await page.waitForSelector(".contact-entry-item", {timeout: 10000, visible: true});
 	await page.click(".contact-entry-item");
-	await page.waitFor(".address-bubble.active");
+	await page.waitForSelector(".address-bubble.active", {timeout: 10000, visible: true});
 }
 async function GetToContact(to){
 	await page.waitFor(100);
 	await page.click(".shipment-container.to input[name=query]");
 	await page.type(".shipment-container.to input[name=query]", to);
-	await page.waitForSelector(".contact-entry-item");
+	await page.waitForSelector(".contact-entry-item", {timeout: 10000, visible: true});
 	await page.click(".contact-entry-item");
-	await page.waitForSelector(".address-bubble.orange-active");
+	await page.waitForSelector(".address-bubble.orange-active", {timeout: 10000, visible: true});
 }
 
 // Function to change billing accounts,
 // value: billing account value within the select
 async function changeBillingAccount(value){
-	await page.waitForSelector("select[name=billing_account]");
+	await page.waitForSelector("select[name=billing_account]", {timeout: 10000, visible: true});
 	await page.select("select[name=billing_account]", value);
 }
 
 // Function to change the payment type,
 // value: the payment type to change to
 async function changePaymentType(type){
-	await page.waitForSelector("select[name=payment_type]");
+	await page.waitForSelector("select[name=payment_type]", {timeout: 10000, visible: true});
 	await page.select("select[name=payment_type]", type);
 }
 
@@ -137,6 +141,39 @@ async function AddAdditionalService(service){
 		case "DCV":
 			await page.click("input[name=DCV]");
 			break;
+		case "Appointment":
+			await page.click("input[name=Appointment]");
+			break;
+		case "COD":
+			await page.click("input[name=COD]");
+			break;
+		case "Heating":
+			await page.click("input[name=Heating]");
+			break;
+		case "Hold for pick up Saturday":
+			await page.click("input[name=Hold for pick up Saturday]");
+			break;	
+		case "Hold for pickup":
+			await page.click("input[name=Hold for pickup]");
+			break;	
+		case "Inside delivery":
+			await page.click("input[name=Inside delivery]");
+			break;	
+		case "Private house":
+			await page.click("input[name=Private house]");
+			break;	
+		case "Private house pick up":
+			await page.click("input[name=Private house pick up]");
+			break;	
+		case "Tailgate":
+			await page.click("input[name=Tailgate]");
+			break;
+		case "Tailgate pick up":
+			await page.click("input[name=Tailgate pick up]");
+			break;
+		case "DCV":
+			await page.click("input[name=DCV]");
+			break;
 		default:
 			break;
 	}
@@ -194,6 +231,74 @@ async function ChangePackageInstructions(instructions){
 	});
 	await page.type("input[name=instructions]", instructions);
 }
+async function addProducts(){
+	await page.click("input[name=productName]");
+	await page.type("input[name=productName]", "ps3");
+	await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
+	await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
+
+	await page.click("input[name=productName]");
+	await page.type("input[name=productName]", "knife");
+	await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
+	await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
+}
+async function GenerateParcelAdditionalServices(){
+	// Generate a random number of services to select
+	let numServices = Math.floor(Math.random() * 4);
+	// Create an array to send back all services that were added
+	let selected = [];
+	// add numServices amount of additional services
+	for(let i = 0; i < numServices; i++){
+		// Get a random service
+		let serv = additionalSerivces[Math.floor(Math.random() * additionalSerivces.length)];
+
+		// If it's already selected, continue trying to select another
+		if(selected.indexOf(serv) != -1){
+			i--;
+			continue;
+		}
+		
+		// If WKD or DVC are already select and the current random service is either or,
+		// get another due to not being able to do add WKD if DVC, or other way around
+		if(serv == "WKD" || serv == "DVC"){
+			if(selected.indexOf("WKD") != -1 || selected.indexOf("DVC") != -1){
+				i--;
+				continue;
+			}
+		}
+
+		// Add the addtional service if passed everythign else
+		await AddAdditionalService(serv);
+		// push to the array
+		selected.push(serv);
+	}
+
+	return selected;
+}
+async function GenerateFreightAdditionalServices(){
+	// Generate a random number of services to select
+	let numServices = Math.floor(Math.random() * 5);
+	// Create an array to send back all services that were added
+	let selected = [];
+	// add numServices amount of additional services
+	for(let i = 0; i < numServices; i++){
+		// Get a random service
+		let serv = freightServices[Math.floor(Math.random() * freightServices.length)];
+
+		// If it's already selected, continue trying to select another
+		if(selected.indexOf(serv) != -1){
+			i--;
+			continue;
+		}
+
+		// Add the addtional service if passed everythign else
+		await AddAdditionalService(serv);
+		// push to the array
+		selected.push(serv);
+	}
+
+	return selected;
+}
 
 /**
  * </Private Functions>
@@ -226,6 +331,8 @@ export const PackageDetails = {
 	}
 };
 
+let currentAccount;
+
 export const Wizard = {
 	Setup: () => {
 		page = _.GetPage();
@@ -252,18 +359,20 @@ export const Wizard = {
 		// Change the billing account
 		await changeBillingAccount(account);
 		
+		currentAccount = account;
+
 		// Wait for the button to activate
 		await page.waitFor(3000);
 		await page.click(".btn.next");
 	},
-	PackageDetails: async(service, account, packageCount) => {
+	PackageDetails: async(service, packageCount) => {
 		// Create the packages array to return for printing validation
 		let packages = [];
 
 		// Create packageCount number of packages
 		for(let i=0; i < packageCount; i++){
 			// Generate a random package
-			let _package = account != "8292093" ? PackageDetails.ParcelPackageRandomizer() : PackageDetails.FreightPackageRandomizer();
+			let _package = currentAccount != "8292093" ? PackageDetails.ParcelPackageRandomizer() : PackageDetails.FreightPackageRandomizer();
 
 			// Change the type of package
 			await ChangePackageType(_package.type);
@@ -299,6 +408,32 @@ export const Wizard = {
 
 		return packages;
 	},
+	CustomsDetails: async() => {
+		let details = {
+			purpose: purposes[Math.floor(Math.random() * purposes.length)],
+			description: faker.random.words(2),
+			broker: broker,
+			duty: dutyOptions[Math.floor(Math.random() * dutyOptions.length)]
+		};
+
+		await addProducts();
+
+		await page.waitFor(2000);
+
+		// Purpose
+		await page.select("select[name=purpose]", details.purpose);
+
+		// Description
+		await page.click("input[name=description]");
+		await page.type("input[name=description]", details.description);
+
+		// Broker
+		await page.select("select[name=broker_id]", details.broker);
+
+		// If duty applies 
+		await page.select("select[name=bill_to]", details.duty);
+
+	},
 	ConfirmAndPay: async(readyBy, closingTime, pickupPoint) => {
 		// Change the pickupPoint
 		await changePickupPoint(pickupPoint);
@@ -322,35 +457,7 @@ export const Wizard = {
 		await changePON(references.order);
 		await changePRE(references.reference);
 
-		// Generate a random number of services to select
-		let numServices = Math.floor(Math.random() * 4);
-		// Create an array to send back all services that were added
-		let selected = [];
-		// add numServices amount of additional services
-		for(let i = 0; i < numServices; i++){
-			// Get a random service
-			let serv = additionalSerivces[Math.floor(Math.random() * additionalSerivces.length)];
-
-			// If it's already selected, continue trying to select another
-			if(selected.indexOf(serv) != -1){
-				i--;
-				continue;
-			}
-			
-			// If WKD or DVC are already select and the current random service is either or,
-			// get another due to not being able to do add WKD if DVC, or other way around
-			if(serv == "WKD" || serv == "DVC"){
-				if(selected.indexOf("WKD") != -1 || selected.indexOf("DVC") != -1){
-					i--;
-					continue;
-				}
-			}
-
-			// Add the addtional service if passed everythign else
-			await AddAdditionalService(serv);
-			// push to the array
-			selected.push(serv);
-		}
+		let selected = currentAccount != "8292093"? await GenerateParcelAdditionalServices() : await GenerateFreightAdditionalServices();
 	
 		await page.waitFor(3000);
 		await page.click(".final-ship");
