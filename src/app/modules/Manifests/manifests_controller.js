@@ -12,6 +12,6 @@ export const Tests = {
         return await Manifest.GoToManifests();
     },
     T1: async() => {
-        return await Manifest.onGenerateManifest("not_generated", "dicom_express_canada", true, [ 1, 3 ]);
+        return await Manifest.onGenerateManifest("not_generated", "dicom_express_canada", true, [ 1 ]);
     }
 };
