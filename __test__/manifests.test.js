@@ -2,6 +2,12 @@ import { _ } from '../src/app/modules/Start/start_controller';
 import * as Manifests from '../src/app/modules/Manifests/manifests_controller';
 import { SignIn } from '../src/app/modules/Signin/signin_helper';
 
+/**
+ * NOTE: for this test to work 
+ * 
+ *
+ */
+
 beforeAll(async () => {
     await _.Run();
     await _.ChangeToDev();
@@ -23,23 +29,22 @@ describe("Manifests", () => {
     }, 16000);
 
     /*******************************************************
-     *  Pre-Test #2: To generate manifest, you have to create orders
-     *******************************************************/
-    test("Create test orders", async () => {
-        expect(true).toBe(true);
-    }, 16000);
-
-    /*******************************************************
-     *  Pre-Test #3: Go to manifest page
+     *  Pre-Test #2: Go to manifest page
      *******************************************************/
     test("Go to manifest page", async () => {
         expect(await Manifests.Tests.GoToManifest()).toBe(true);
     }, 16000);
 
     /*******************************************************
-     *  Test #1:
+     *  Test #1: Clear out/generate manifests if there are any
      *******************************************************/
-    test("test #1", async () => {
-        expect(await Manifests.Tests.T1()).toBe(true);
-    }, 16000);
+    if (manifestObject.totalManifests === 0) {
+        test("Can't generate manifest with no pickup addresses available", async () => {
+            expect(manifestObject.success).toBe(false);
+        }, 16000);
+    } else {
+        test("Generate " + manifestObject.manifestsGenerated + " manifests", async () => {
+            expect(manifestObject.success).toBe(true);
+        }, 16000);
+    }
 });

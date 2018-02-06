@@ -14,10 +14,16 @@ export const Manifest = {
         await page.click(".side-bar div:nth-child(2) a");
         await page.waitFor(1500);
 
-        return true;
+        return !!(await page.$('.shipment-table-container'));
     },
     onGenerateManifest: async (manifestType, manifestService, showManifestPricing, arrayOfManifestsToTake) => {
-        // click the "Manifest" print button
+        // we can't generate manifests if we are not on the page!
+        var isOnManifestPage = !!(await page.$('.shipment-table-container'));
+        if (!isOnManifestPage) {
+            return false;
+        }
+
+        // since we are on the page, click the "Manifest" print button
         await page.click(".shipments-action-button");
         await page.waitFor(1000);
 
@@ -39,13 +45,13 @@ export const Manifest = {
 
         // if there are no manifests to be made, return false
         if (totalManifests === 0) {
-            return false;
+            return {totalManifests: 0, manifestsGenerated: 0, success: false};
         }
 
         // click "Show manifest pricing" if necessary
         if (showManifestPricing) {
             await page.click(".checkbox-label");
-            await page.waitFor(100); // needed, or bugs will occur
+            await page.waitFor(300); // needed, or bugs will occur
         }
 
         // get manifest indexes to select depending on what option was selected
@@ -73,13 +79,13 @@ export const Manifest = {
 
             // click the checkbox on the manifest item
             await page.click(".pickup-address-list div:nth-child(" + a + ") label");
-            await page.waitFor(200);
+            await page.waitFor(300);
         }
 
         // click the "Generate Manifest" button
         //await page.click(".btn.btn-md.btn-secondary.inline");
+        await page.waitFor(500);
 
-        await page.waitFor(20000);
-        return true;
+        return {totalManifests: totalManifests, manifestsGenerated: arrayOfManifestsToTake.length, success: true};
     }
 };
