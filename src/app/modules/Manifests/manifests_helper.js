@@ -34,9 +34,16 @@ export const Manifest = {
         }
 
         // change service if necessary
-        // 3 types: dicom_express_canada, dicom_ec_usa, dicom_freight_canada
         await page.select(".manifest-selection-container select[name=interfaced_service]", manifestService);
         await page.waitFor(1000); // big timing window
+
+        // change manifest time range
+        //await page.click(".dicon-calendar");
+        //await page.waitFor(1000);
+        //await page.hover(".daterangepicker.dropdown-menu.ltr.opensright ul:nth-child(3)");
+        //await page.waitFor(5000);
+        //await page.click(".ranges li:nth-child(1)");
+        //await page.waitFor(3000);
 
         // get the total amount of manifests
         var totalManifests = await page.evaluate(() => {
@@ -54,13 +61,7 @@ export const Manifest = {
             await page.waitFor(300); // needed, or bugs will occur
         }
 
-        // change manifest time range
-        //await page.click(".dicon-calendar");
-        //await page.waitFor(2000);
-        //await page.click(".ranges li:nth-child(4)");
-        //await page.waitFor(1000);
-
-        // get manifest indexes to select depending on what option was selected
+        // get manifest indexes to select depending on what option was passed in
         if (arrayOfManifestsToTake === "all") {
             arrayOfManifestsToTake = [];
             for (var i = 0; i < totalManifests; i++) {
@@ -77,17 +78,27 @@ export const Manifest = {
         }
 
         // loop through the array of manifests to take and select them
-        //console.log("Total manifests: " + totalManifests + ". Selecting manifests: " + arrayOfManifestsToTake);
         for (var i = 0; i < arrayOfManifestsToTake.length; i++) {
             var a = arrayOfManifestsToTake[i] + 1;
-            //console.log("clicking on: .pickup-address-list div:nth-child(" + a + ") label");
             await page.click(".pickup-address-list div:nth-child(" + a + ") label");
             await page.waitFor(300);
         }
 
         // click the "Generate Manifest" button
-        //await page.click(".btn.btn-md.btn-secondary.inline");
+        var pages = await browser.pages();
+        var beforeCount = pages.length;
+        await page.click(".btn.btn-md.btn-secondary.inline");
         await page.waitFor(500);
+
+        // wait for the manifest file to generate
+	    pages = await browser.pages();
+	    while (pages.length < beforeCount + 1) {
+		    await page.waitFor(1000);
+		    pages = await browser.pages();
+	    }
+
+        var popup = pages.pop();
+        await popup.waitFor(7500); // Give the popup time to load
 
         return {totalManifests: totalManifests, manifestsGenerated: arrayOfManifestsToTake.length, success: true};
     }

@@ -25,5 +25,6 @@ export const Tests = {
     },
     T5: async () => {
         // Generate manifests with previous shipments
+        //return await Manifest.onGenerateManifest("not_generated", "dicom_express_canada", true, "today", "all");
     }
 };

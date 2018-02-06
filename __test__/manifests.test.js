@@ -5,8 +5,8 @@ import { Shipments } from '../src/app/modules/Shipments/wizard_controller';
 
 /**
  * NOTE: for this test to work, please generate ALL non-generated
- * manifest files. this test requires no manifest files awaiting
- * generation.
+ * manifest files for the current month. this test requires no manifest files awaiting
+ * generation for the start
  */
 
 beforeAll(async () => {
@@ -39,38 +39,39 @@ describe("Manifests", () => {
     /*******************************************************
      *  Test #1:
      *******************************************************/
-    test("Can't generate manifest with no pickup addresses available (Dicom Parcel Canada)", async () => {
-        var response = await Manifests.Tests.T1(); // needed in another variable
-        expect(response.success).toBe(false);
-    }, 16000);
+    //test("Can't generate manifest with no pickup addresses available (Dicom Parcel Canada)", async () => {
+        //var response = await Manifests.Tests.T1(); // needed in another variable
+        //expect(response.success).toBe(false);
+    //}, 16000);
 
     /*******************************************************
      *  Test #2:
      *******************************************************/
-    test("Can't generate manifest with no pickup addresses available (Dicom Parcel US)", async () => {
-        var response = await Manifests.Tests.T2();
-        expect(response.success).toBe(false);
-    }, 16000);
+    //test("Can't generate manifest with no pickup addresses available (Dicom Parcel US)", async () => {
+        //var response = await Manifests.Tests.T2();
+        //expect(response.success).toBe(false);
+    //}, 16000);
 
     /*******************************************************
      *  Test #3:
      *******************************************************/
-    test("Can't generate manifest with no pickup addresses available (Dicom LTL Canada)", async () => {
-        var response = await Manifests.Tests.T3();
-        expect(response.success).toBe(false);
-    }, 16000);
+    //test("Can't generate manifest with no pickup addresses available (Dicom LTL Canada)", async () => {
+        //var response = await Manifests.Tests.T3();
+        //expect(response.success).toBe(false);
+    //}, 16000);
 
     /*******************************************************
      *  Test #4: TODO RANDOMIZE NUMBER OF SHIPMENTS
      *******************************************************/
-    test("Create test shipments", async () => {
-        expect(true).toBe(true);
-    }, 16000);
+    //test("Create test shipments", async () => {
+        //expect(true).toBe(true);
+    //}, 16000);
 
     /*******************************************************
      *  Test #5:
      *******************************************************/
     test("Generate manifests with previous shipments", async () => {
-        expect(true).toBe(true);
+        var response = await Manifests.Tests.T5();
+        expect(response.success).toBe(true);
     }, 16000);
 });

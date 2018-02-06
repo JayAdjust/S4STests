@@ -15,39 +15,38 @@ export const Contact = {
 
         // click the 1st item that appears (Contacts)
         await page.click(".sub-route div:nth-child(1)");
-        await page.waitFor(300);
+        await page.waitFor(500);
 
         return !!(await page.$(".manage-contacts-header"));
     },
     onCreateContact: async (customerID, billingAccount, company, country, postalCode, address, addressLine2, city, province, attentionTo, phone, phoneExt, email, mobilePhone, wantsSameCompanyName) => {
         // click the "+ create contact" button
         await page.click(".dicon-add-new");
-        await page.waitFor(20);
-
-        // clear all the textboxes
-        //await ClearAllTextBoxes();
+        await page.waitFor(2000);
 
         // enter the customer ID
+        await ClearInputBox("input[name=customer_id]");
         if (customerID !== "") {
             await page.focus("input[name=customer_id]");
-            await page.waitFor(20);
-            await page.type("input[name=customer_id]", customerID);
+            await page.waitFor(5);
+            await page.type("input[name=customer_id]", customerID, { delay: 50 });
         }
 
         // enter the customer's billing account
+        await ClearInputBox("input[name=billing_account]");
         if (billingAccount !== "") {
             await page.focus("input[name=billing_account]");
-            await page.waitFor(20);
+            await page.waitFor(5);
             await page.type("input[name=billing_account]", customerID);
         }
 
         // enter the company name
+        await ClearInputBox("input[name=company_name]");
         await page.focus("input[name=company_name]");
-        await page.waitFor(20);
+        await page.waitFor(5);
         await page.type("input[name=company_name]", company);
-        await page.waitFor(100);
 
-        /*
+        /* IDK?
         if (!wantsSameCompanyName) {
             var num = 0;
             do {
@@ -82,30 +81,35 @@ export const Contact = {
         // remove the autocomplete window when entering a company name
         // simply focus on something else will remove it
         // can cause bugs otherwise
-        await page.focus("input[name=customer_id]");
-        await page.waitFor(200);
+        // removed
+        //await page.waitFor(100);
+        //await page.focus("input[name=customer_id]");
+        //await page.waitFor(100);
 
         // enter the country
-        await page.focus("select[name='country']");
-        await page.waitFor(20);
-        await page.select("select[name='country']", country);
+        await ClearInputBox("select[name=country]");
+        await page.focus("select[name=country]");
+        await page.waitFor(5);
+        await page.select("select[name=country]", country);
 
         // enter the postal code / zip code
+        await ClearInputBox("input[name=postal_code]");
         await page.focus("input[name=postal_code]");
-        await page.waitFor(500); // postal code/zip code needs more of a delay, bugs can/will occur otherwise
+        await page.waitFor(300); // postal code/zip code needs more of a delay, bugs can/will occur otherwise
         await page.focus("input[name=postal_code]"); // needed again for some reason
         await page.type("input[name=postal_code]", postalCode);
 
         // enter main street address
+        await ClearInputBox(".address-field.form-group.std input");
         await page.focus(".address-field.form-group.std input");
-        await page.waitFor(20);
+        await page.waitFor(5);
         await page.type(".address-field.form-group.std input", address);
 
         // wait for the auto-complete window to show
-        // assume that if no popup window shows after 5 seconds, it's an invalid address
+        // assume that if no popup window shows after 3 seconds, it's an invalid address
         // after the timeout exceeded, puppeteer will throw an error, so it is needed in a try catch
         try {
-            await page.waitFor(".auto-address-item div:nth-child(1)", {timeout: 5000});
+            await page.waitFor(".auto-address-item div:nth-child(1)", {timeout: 3000});
         } catch (e) {
             // the timeout was exceeded, no popup window here
         } finally {
@@ -117,6 +121,7 @@ export const Contact = {
                 await page.click(".auto-address-item div:nth-child(1)");
             } else {
                 // when the auto complete window didn't show up, type in the city manually
+                await ClearInputBox("input[name=city]");
                 await page.focus("input[name=city]");
                 await page.waitFor(20);
                 await page.type("input[name=city]", city);
@@ -128,48 +133,56 @@ export const Contact = {
             }
 
             // enter street address line #2
+            await ClearInputBox("input[name=street_line_2]");
             if (addressLine2 !== "") {
                 await page.focus("input[name=street_line_2]");
-                await page.waitFor(20);
+                await page.waitFor(5);
                 await page.type("input[name=street_line_2]", addressLine2);
             }
 
             // enter "Attention To"
+            await page.waitFor(2000);
             await page.focus("input[name=person_full_name]");
-            await page.waitFor(20);
+            await ClearInputBox("input[name=person_full_name]");
+            await page.waitFor(2000);
+            //await page.focus("input[name=person_full_name]");
+            await page.waitFor(5);
             await page.type("input[name=person_full_name]", attentionTo);
 
             // enter phone
+            await ClearInputBox("input[name=phone]");
             if (phone !== "") {
                 await page.focus("input[name=phone]");
-                await page.waitFor(20);
+                await page.waitFor(5);
                 await page.type("input[name=phone]", phone);
             }
 
             // enter phone extension
+            await ClearInputBox("input[name=phone_ext]");
             if (phoneExt !== "") {
                 await page.focus("input[name=phone_ext]");
-                await page.waitFor(20);
+                await page.waitFor(5);
                 await page.type("input[name=phone_ext]", phoneExt);
             }
 
             // enter email
+            await ClearInputBox("input[name=email]");
             if (email !== "") {
                 await page.focus("input[name=email]");
-                await page.waitFor(20);
+                await page.waitFor(5);
                 await page.type("input[name=email]", email);
             }
 
             // enter mobile phone
+            await ClearInputBox("input[name=mobile_phone]");
             if (mobilePhone !== "") {
                 await page.focus("input[name=mobile_phone]");
-                await page.waitFor(20);
+                await page.waitFor(5);
                 await page.type("input[name=mobile_phone]", mobilePhone);
             }
 
-            //await page.waitFor(2000);
-
             // click the "Add Contact" button
+            await page.waitFor(100);
             await page.click(".btn.btn-md.btn-secondary.inline.floating");
             await page.waitFor(100);
 
@@ -180,7 +193,14 @@ export const Contact = {
     }
 }
 
+async function ClearInputBox(e) {
+    await page.evaluate(function(e) {
+        document.querySelector(e).value = "";
+    }, e);
+}
+
 async function ClearAllTextBoxes() {
+    /*
     await page.focus("input[name=customer_id]");
     await page.waitFor(100);
     await page.evaluate(function() {
@@ -192,13 +212,17 @@ async function ClearAllTextBoxes() {
     await page.evaluate(function() {
         document.querySelector('input[name=billing_account]').value = "";
     });
+    */
 
     await page.focus("input[name=company_name]");
-    await page.waitFor(100);
+    await page.waitFor(500);
+    console.log("CLEARING!");
     await page.evaluate(function() {
-        document.querySelector('input[name=company_name]').value = "";
+        document.querySelector('input[name=company_name]').value = '';
     });
+    await page.waitFor(1000);
 
+    /*
     await page.focus("input[name=postal_code]");
     await page.waitFor(100);
     await page.evaluate(function() {
@@ -258,4 +282,5 @@ async function ClearAllTextBoxes() {
     await page.evaluate(function() {
         document.querySelector('input[name=mobile_phone]').value = "";
     });
+    */
 }
