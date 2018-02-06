@@ -21,7 +21,9 @@ async function ClearPassword(){
 export const SignIn = {
     Setup: () => {
         page = _.GetPage();
-        browser = _.GetBrowser();
+		browser = _.GetBrowser();
+		
+		return page != null && browser != null;
     },
     onSignIn: async (email, pass) => {
 	    await page.click("input[name=email]");

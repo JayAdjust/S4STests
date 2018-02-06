@@ -5,7 +5,7 @@ import faker from 'faker';
 const measurements = ["metric", "imperial"];
 const parcelPackages = ["EV", "BX"];
 const freightPackages = ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"];
-const additionalSerivces = ["HPF","NCV","TRD","WKD","DCV"];
+const additionalServices = ["HPF","NCV","TRD","WKD","DCV"];
 const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup",
 	"Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
 const purposes = ["COM","PER","DOC","RET"];
@@ -145,7 +145,6 @@ async function AddAdditionalService(service){
 		case "Private house pick up": await page.click("input[name=Private house pick up]"); break;	
 		case "Tailgate": await page.click("input[name=Tailgate]"); break;
 		case "Tailgate pick up": await page.click("input[name=Tailgate pick up]"); break;
-		case "DCV": await page.click("input[name=DCV]"); break;
 		default: break;
 	}
 }
@@ -175,25 +174,49 @@ async function ChangePackageWeight(wght){
 }
 async function ChangePackageDimensions(length, width, height){
 	// Length
-	await page.click("input[name=length]");
-	await page.evaluate(function() {
-        document.querySelector("input[name=length]").value = "";
-	});
-	await page.type("input[name=length]", "" + length + "");
+	let ready = false;
+	while(!ready){
+		await page.click("input[name=length]");
+		await page.evaluate(() => {
+    	    document.querySelector("input[name=length]").value = "";
+		});
+		await page.type("input[name=length]",length);
+
+		ready = (await page.evaluate(() => {
+			return document.querySelector("input[name=length]").value;
+		})) == length;
+
+	}
 
 	// Width
-	await page.click("input[name=width]");
-	await page.evaluate(function() {
-        document.querySelector("input[name=width]").value = "";
-	});
-	await page.type("input[name=width]", width );
+	ready = false;
+	while(!ready){
+		await page.click("input[name=width]");
+		await page.evaluate(() => {
+    	    document.querySelector("input[name=width]").value = "";
+		});
+		await page.type("input[name=width]",width);
+
+		ready = (await page.evaluate(() => {
+			return document.querySelector("input[name=width]").value;
+		})) == width;
+
+	}
 
 	// Height
-	await page.click("input[name=height]");
-	await page.evaluate(function() {
-        document.querySelector("input[name=height]").value = "";
-	});
-	await page.type("input[name=height]", height);
+	ready = false;
+	while(!ready){
+		await page.click("input[name=height]");
+		await page.evaluate(() => {
+    	    document.querySelector("input[name=height]").value = "";
+		});
+		await page.type("input[name=height]",height);
+
+		ready = (await page.evaluate(() => {
+			return document.querySelector("input[name=height]").value;
+		})) == height;
+
+	}
 }
 async function ChangePackageInstructions(instructions){
 	await page.click("input[name=instructions]");
@@ -210,7 +233,7 @@ async function GenerateParcelAdditionalServices(){
 	// add numServices amount of additional services
 	for(let i = 0; i < numServices; i++){
 		// Get a random service
-		let serv = additionalSerivces[Math.floor(Math.random() * additionalSerivces.length)];
+		let serv = additionalServices[Math.floor(Math.random() * additionalServices.length)];
 
 		// If it's already selected, continue trying to select another
 		if(selected.indexOf(serv) != -1){
@@ -230,8 +253,8 @@ async function GenerateParcelAdditionalServices(){
 		// Add the addtional service if passed everythign else
 		await AddAdditionalService(serv);
 
-		await page.waitForSelector("input[name=DVC]", {timeout: 10000, visible: true});
 		if(serv == "DVC"){
+			await page.waitForSelector("input[name=DVC]", {timeout: 10000, visible: true});
 			await page.type("input[name=DVC]", "10");
 		}
 
@@ -279,7 +302,7 @@ export const PackageDetails = {
 	ParcelPackageRandomizer: () => {
 		return {
 			type: parcelPackages[Math.floor(Math.random() * parcelPackages.length)],
-			mesurement: measurements[Math.floor(Math.random() * measurements.length)],
+			measurement: measurements[Math.floor(Math.random() * measurements.length)],
 			quantity: Math.floor(Math.random() * 5) + 2,
 			weight: Math.floor(Math.random() * 10) + 1,
 			length: Math.floor(Math.random() * 15) + 5,
@@ -308,6 +331,8 @@ export const Wizard = {
 	Setup: () => {
 		page = _.GetPage();
 		browser = _.GetBrowser();
+
+		return page != null && browser != null;
 	},
 
 	// Function
@@ -331,10 +356,6 @@ export const Wizard = {
 		await changeBillingAccount(account);
 		
 		currentAccount = account;
-
-		// Wait for the button to activate
-		await page.waitFor(3000);
-		await page.click(".btn.next");
 	},
 	PackageDetails: async(service, packageCount) => {
 		// Create the packages array to return for printing validation
@@ -374,9 +395,6 @@ export const Wizard = {
 			packages.push(_package);
 		}
 
-		await page.waitFor(3000);
-		await page.click(".btn.next");
-
 		return packages;
 	},
 	CustomsDetails: async() => {
@@ -408,7 +426,9 @@ export const Wizard = {
 		await page.click(".btn.next");
 
 	},
-	ConfirmAndPay: async(readyBy, closingTime, pickupPoint) => {
+	ConfirmAndPay: async(readyBy, closingTime, pickupPoint, account) => {
+		await page.waitFor(2000);
+
 		// Change the pickupPoint
 		await changePickupPoint(pickupPoint);
 		// Change Pickup ready by
@@ -431,10 +451,8 @@ export const Wizard = {
 		await changePON(references.order);
 		await changePRE(references.reference);
 
-		let selected = currentAccount != "8292093"? await GenerateParcelAdditionalServices() : await GenerateFreightAdditionalServices();
-	
-		await page.waitFor(3000);
-		await page.click(".final-ship");
+		let selected = account != "8292093"? await GenerateParcelAdditionalServices() : await GenerateFreightAdditionalServices();
+
 		return {references: references, services: selected};
 	},
 }

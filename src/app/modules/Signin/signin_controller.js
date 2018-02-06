@@ -7,9 +7,9 @@ const VALID_PASS = "test123";
 
 export const Tests = {
 	Setup: () => {
-		SignIn.Setup();
+		return SignIn.Setup();
 	},
-
+	
 	T1: async () => {
 		return !await SignIn.onSignIn(await faker.internet.email(), await faker.internet.password());
 	},
