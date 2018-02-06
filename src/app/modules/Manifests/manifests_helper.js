@@ -32,12 +32,12 @@ export const Manifest = {
         await page.select(".manifest-selection-container select[name=interfaced_service]", manifestService);
         await page.waitFor(1000); // big timing window
 
-        // if there are no manifests to be made, return false
         // get the total amount of manifests
         var totalManifests = await page.evaluate(() => {
             return document.getElementsByClassName("pickup-address-item").length;
         });
 
+        // if there are no manifests to be made, return false
         if (totalManifests === 0) {
             return false;
         }
@@ -45,15 +45,16 @@ export const Manifest = {
         // click "Show manifest pricing" if necessary
         if (showManifestPricing) {
             await page.click(".checkbox-label");
+            await page.waitFor(100); // needed, or bugs will occur
         }
 
-        // update the arrayOfManifestsToTake array to loop through later
+        // get manifest indexes to select depending on what option was selected
         if (arrayOfManifestsToTake === "all") {
             arrayOfManifestsToTake = [];
             for (var i = 0; i < totalManifests; i++) {
                 arrayOfManifestsToTake.push(i + 1);
             }
-        } else if (arrayOfManifestsToTake === "some") {
+        } else if (arrayOfManifestsToTake === "random") {
             arrayOfManifestsToTake = [];
             for (var i = 0; i < totalManifests; i++) {
                 var randomBoolean = (Math.random() >= 0.5);
@@ -67,28 +68,18 @@ export const Manifest = {
         // TODO: fix this
         console.log("Total manifests: " + totalManifests + ". Selecting manifests: " + arrayOfManifestsToTake);
         for (var i = 0; i < arrayOfManifestsToTake.length; i++) {
-            console.log("in loop for manifest: " + arrayOfManifestsToTake[i]);
+            var a = arrayOfManifestsToTake[i] + 1;
+            console.log("clicking on: .pickup-address-list div:nth-child(" + a + ") label");
 
-            var element = await page.evaluate(() => {
-                //return document.getElementsByClassName("pickup-address-item")[0];
-                //var x = document.getElementsByClassName("pickup-address-list");
-                //console.log("THIS IS A TEST AHHHHHHHHHHHHHHHHHHHHHHHHHHH: " + x[0].innerHTML);
-            });
-
-            //for (var j = 0; j < element.length; j++) {
-                //console.log(element[j]);
-            //}
-
-            //await page.click(element);
-
-            //var x = arrayOfManifestsToTake[i] + 1;
-            //await page.click(".pickup-address-list div:nth-child(" + x + ")");
+            // click the checkbox on the manifest item
+            await page.click(".pickup-address-list div:nth-child(" + a + ") label");
+            await page.waitFor(200);
         }
 
         // click the "Generate Manifest" button
         //await page.click(".btn.btn-md.btn-secondary.inline");
 
-        await page.waitFor(10000);
+        await page.waitFor(20000);
         return true;
     }
 };

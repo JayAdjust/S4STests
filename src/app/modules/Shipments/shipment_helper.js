@@ -433,7 +433,7 @@ export const Wizard = {
 
 		let selected = currentAccount != "8292093"? await GenerateParcelAdditionalServices() : await GenerateFreightAdditionalServices();
 	
-		await page.waitFor(3000);
+		await page.waitFor(5000);
 		await page.click(".final-ship");
 		return {references: references, services: selected};
 	},
