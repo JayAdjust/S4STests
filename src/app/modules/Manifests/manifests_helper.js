@@ -16,11 +16,11 @@ export const Manifest = {
 
         return !!(await page.$('.shipment-table-container'));
     },
-    onGenerateManifest: async (manifestType, manifestService, showManifestPricing, arrayOfManifestsToTake) => {
+    onGenerateManifest: async (manifestType, manifestService, showManifestPricing, manifestTIme, arrayOfManifestsToTake) => {
         // we can't generate manifests if we are not on the page!
         var isOnManifestPage = !!(await page.$('.shipment-table-container'));
         if (!isOnManifestPage) {
-            return false;
+            return {totalManifests: 0, manifestsGenerated: 0, success: false};
         }
 
         // since we are on the page, click the "Manifest" print button
@@ -54,6 +54,12 @@ export const Manifest = {
             await page.waitFor(300); // needed, or bugs will occur
         }
 
+        // change manifest time range
+        //await page.click(".dicon-calendar");
+        //await page.waitFor(2000);
+        //await page.click(".ranges li:nth-child(4)");
+        //await page.waitFor(1000);
+
         // get manifest indexes to select depending on what option was selected
         if (arrayOfManifestsToTake === "all") {
             arrayOfManifestsToTake = [];
@@ -71,13 +77,10 @@ export const Manifest = {
         }
 
         // loop through the array of manifests to take and select them
-        // TODO: fix this
-        console.log("Total manifests: " + totalManifests + ". Selecting manifests: " + arrayOfManifestsToTake);
+        //console.log("Total manifests: " + totalManifests + ". Selecting manifests: " + arrayOfManifestsToTake);
         for (var i = 0; i < arrayOfManifestsToTake.length; i++) {
             var a = arrayOfManifestsToTake[i] + 1;
-            console.log("clicking on: .pickup-address-list div:nth-child(" + a + ") label");
-
-            // click the checkbox on the manifest item
+            //console.log("clicking on: .pickup-address-list div:nth-child(" + a + ") label");
             await page.click(".pickup-address-list div:nth-child(" + a + ") label");
             await page.waitFor(300);
         }
