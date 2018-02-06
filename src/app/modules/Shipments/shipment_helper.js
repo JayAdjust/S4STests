@@ -451,8 +451,15 @@ export const Wizard = {
 		await changePON(references.order);
 		await changePRE(references.reference);
 
+<<<<<<< HEAD
 		let selected = account != "8292093"? await GenerateParcelAdditionalServices() : await GenerateFreightAdditionalServices();
 
+=======
+		let selected = currentAccount != "8292093"? await GenerateParcelAdditionalServices() : await GenerateFreightAdditionalServices();
+	
+		await page.waitFor(5000);
+		await page.click(".final-ship");
+>>>>>>> af01bbb9d0c7245ace73e53fdf1f378ac4f0cc35
 		return {references: references, services: selected};
 	},
 }

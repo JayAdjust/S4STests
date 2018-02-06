@@ -16,71 +16,70 @@ describe("Signing Up", () => {
      *  Pre-Test:
      *******************************************************/
     test("Getting to the sign up page", async () => {
-        let page = _.GetPage(); 
-		await page.click(".link-sign-up");
+        expect(await SignUp.Tests.GoToSignUp()).toBe(true);
     }, 16000);
 
     /*******************************************************
      *  Test #1:
      *******************************************************/
     test("Can't sign up with an invalid email (email of: 'testing_bad_email')", async () => {
-        expect(await SignUp.Tests.T1()).toBe(true);
+        expect(await SignUp.Tests.T1()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #2:
      *******************************************************/
     test("Can't sign up with a blank email", async() => {
-        expect(await SignUp.Tests.T2()).toBe(true);
+        expect(await SignUp.Tests.T2()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #3:
      *******************************************************/
     test("Can't sign up with mismatching passwords", async() => {
-        expect(await SignUp.Tests.T3()).toBe(true);
+        expect(await SignUp.Tests.T3()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #4:
      *******************************************************/
     test("Can't sign up with a blank first name", async() => {
-        expect(await SignUp.Tests.T4()).toBe(true);
+        expect(await SignUp.Tests.T4()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #5:
      *******************************************************/
     test("Can't sign up with a blank last name", async() => {
-        expect(await SignUp.Tests.T5()).toBe(true);
+        expect(await SignUp.Tests.T5()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #6:
      *******************************************************/
     test("Can't sign up with a blank company name", async() => {
-        expect(await SignUp.Tests.T6()).toBe(true);
+        expect(await SignUp.Tests.T6()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #7:
      *******************************************************/
     test("Can't sign up with a blank password", async() => {
-        expect(await SignUp.Tests.T7()).toBe(true);
+        expect(await SignUp.Tests.T7()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #8:
      *******************************************************/
     test("Can't sign up with a blank confirm password", async() => {
-        expect(await SignUp.Tests.T8()).toBe(true);
+        expect(await SignUp.Tests.T8()).toBe(false);
     }, 16000);
 
     /*******************************************************
      *  Test #9:
      *******************************************************/
     test("Can't sign up with a password less than 6 characters (testing password: qwert)", async() => {
-        expect(await SignUp.Tests.T9()).toBe(true);
+        expect(await SignUp.Tests.T9()).toBe(false);
     }, 16000);
 
     /*******************************************************
@@ -115,6 +114,6 @@ describe("Signing Up", () => {
      *  Test #14:
      *******************************************************/
     test("Can't sign up with duplicate email", async() => {
-        expect(await SignUp.Tests.T14()).toBe(true);
+        expect(await SignUp.Tests.T14()).toBe(false);
     }, 16000);
 });

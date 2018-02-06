@@ -14,10 +14,16 @@ export const Manifest = {
         await page.click(".side-bar div:nth-child(2) a");
         await page.waitFor(1500);
 
-        return true;
+        return !!(await page.$('.shipment-table-container'));
     },
-    onGenerateManifest: async (manifestType, manifestService, showManifestPricing, arrayOfManifestsToTake) => {
-        // click the "Manifest" print button
+    onGenerateManifest: async (manifestType, manifestService, showManifestPricing, manifestTIme, arrayOfManifestsToTake) => {
+        // we can't generate manifests if we are not on the page!
+        var isOnManifestPage = !!(await page.$('.shipment-table-container'));
+        if (!isOnManifestPage) {
+            return {totalManifests: 0, manifestsGenerated: 0, success: false};
+        }
+
+        // since we are on the page, click the "Manifest" print button
         await page.click(".shipments-action-button");
         await page.waitFor(1000);
 
@@ -28,32 +34,40 @@ export const Manifest = {
         }
 
         // change service if necessary
-        // 3 types: dicom_express_canada, dicom_ec_usa, dicom_freight_canada
         await page.select(".manifest-selection-container select[name=interfaced_service]", manifestService);
         await page.waitFor(1000); // big timing window
 
-        // if there are no manifests to be made, return false
+        // change manifest time range
+        //await page.click(".dicon-calendar");
+        //await page.waitFor(1000);
+        //await page.hover(".daterangepicker.dropdown-menu.ltr.opensright ul:nth-child(3)");
+        //await page.waitFor(5000);
+        //await page.click(".ranges li:nth-child(1)");
+        //await page.waitFor(3000);
+
         // get the total amount of manifests
         var totalManifests = await page.evaluate(() => {
             return document.getElementsByClassName("pickup-address-item").length;
         });
 
+        // if there are no manifests to be made, return false
         if (totalManifests === 0) {
-            return false;
+            return {totalManifests: 0, manifestsGenerated: 0, success: false};
         }
 
         // click "Show manifest pricing" if necessary
         if (showManifestPricing) {
             await page.click(".checkbox-label");
+            await page.waitFor(300); // needed, or bugs will occur
         }
 
-        // update the arrayOfManifestsToTake array to loop through later
+        // get manifest indexes to select depending on what option was passed in
         if (arrayOfManifestsToTake === "all") {
             arrayOfManifestsToTake = [];
             for (var i = 0; i < totalManifests; i++) {
                 arrayOfManifestsToTake.push(i + 1);
             }
-        } else if (arrayOfManifestsToTake === "some") {
+        } else if (arrayOfManifestsToTake === "random") {
             arrayOfManifestsToTake = [];
             for (var i = 0; i < totalManifests; i++) {
                 var randomBoolean = (Math.random() >= 0.5);
@@ -64,31 +78,28 @@ export const Manifest = {
         }
 
         // loop through the array of manifests to take and select them
-        // TODO: fix this
-        console.log("Total manifests: " + totalManifests + ". Selecting manifests: " + arrayOfManifestsToTake);
         for (var i = 0; i < arrayOfManifestsToTake.length; i++) {
-            console.log("in loop for manifest: " + arrayOfManifestsToTake[i]);
-
-            var element = await page.evaluate(() => {
-                //return document.getElementsByClassName("pickup-address-item")[0];
-                //var x = document.getElementsByClassName("pickup-address-list");
-                //console.log("THIS IS A TEST AHHHHHHHHHHHHHHHHHHHHHHHHHHH: " + x[0].innerHTML);
-            });
-
-            //for (var j = 0; j < element.length; j++) {
-                //console.log(element[j]);
-            //}
-
-            //await page.click(element);
-
-            //var x = arrayOfManifestsToTake[i] + 1;
-            //await page.click(".pickup-address-list div:nth-child(" + x + ")");
+            var a = arrayOfManifestsToTake[i] + 1;
+            await page.click(".pickup-address-list div:nth-child(" + a + ") label");
+            await page.waitFor(300);
         }
 
         // click the "Generate Manifest" button
-        //await page.click(".btn.btn-md.btn-secondary.inline");
+        var pages = await browser.pages();
+        var beforeCount = pages.length;
+        await page.click(".btn.btn-md.btn-secondary.inline");
+        await page.waitFor(500);
 
-        await page.waitFor(10000);
-        return true;
+        // wait for the manifest file to generate
+	    pages = await browser.pages();
+	    while (pages.length < beforeCount + 1) {
+		    await page.waitFor(1000);
+		    pages = await browser.pages();
+	    }
+
+        var popup = pages.pop();
+        await popup.waitFor(7500); // Give the popup time to load
+
+        return {totalManifests: totalManifests, manifestsGenerated: arrayOfManifestsToTake.length, success: true};
     }
 };
