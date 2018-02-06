@@ -9,7 +9,7 @@ const additionalSerivces = ["HPF","NCV","TRD","WKD","DCV"];
 const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup",
 	"Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
 const purposes = ["COM","PER","DOC","RET"];
-const dutyOptions = ["SHIPPER","RECIPIENT","THIRD_PARTY"];
+const dutyOptions = ["SHIPPER","RECIPIENT"/*,"THIRD_PARTY"*/];
 const broker = "cisuu7xyi000o0yghovn49w6u";
 
 // FIELDS
@@ -229,6 +229,12 @@ async function GenerateParcelAdditionalServices(){
 
 		// Add the addtional service if passed everythign else
 		await AddAdditionalService(serv);
+
+		await page.waitForSelector("input[name=DVC]", {timeout: 10000, visible: true});
+		if(serv == "DVC"){
+			await page.type("input[name=DVC]", "10");
+		}
+
 		// push to the array
 		selected.push(serv);
 	}
@@ -253,6 +259,11 @@ async function GenerateFreightAdditionalServices(){
 
 		// Add the addtional service if passed everythign else
 		await AddAdditionalService(serv);
+
+		if(serv == "DVC"){
+			await page.type("input[name=DVC]", "10");
+		}
+
 		// push to the array
 		selected.push(serv);
 	}
@@ -377,31 +388,18 @@ export const Wizard = {
 		};
 
 		await page.click("input[name=productName]");
-		await page.type("input[name=productName]", "ps3");
+		await page.type("input[name=productName]", "ps4");
 		await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
 		await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
-	
-		// Description
-		await page.click("input[name=description]");
-		await page.type("input[name=description]", details.description);
-
-		await page.click("input[name=productName]");
-		await page.type("input[name=productName]", "knife");
-		await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
-		await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
-
-		// Description
-		await page.click("input[name=description]");
-		await page.type("input[name=description]", details.description);
 
 		await page.waitFor(2000);
 
 		// Purpose
 		await page.select("select[name=purpose]", details.purpose);
-
+		
 		// Broker
 		await page.select("select[name=broker_id]", details.broker);
-
+		
 		// If duty applies 
 		await page.select("select[name=bill_to]", details.duty);
 

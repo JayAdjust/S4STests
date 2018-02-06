@@ -1,6 +1,7 @@
 import { _ } from '../Start/start_controller';
 import { Wizard } from './shipment_helper';
 import faker from "faker";
+import fs from 'fs';
 
 const PAYMENT_TYPES = {
 	prepaid: "PREPAID",
@@ -52,6 +53,9 @@ const PICKUP_TIMES = {
 	seven: "19:00"
 }
 
+const DOMESTIC_PATH = "images/wizard/domestic/";
+const XBORDER_PATH = "images/wizard/xborder/";
+
 let page;
 let browser;
 /**
@@ -61,6 +65,50 @@ async function RestartShipment(){
 	await Wizard.GoToWizard();
 	await page.click(".dicon-redo");
 	await page.waitForSelector(".shipping-wizzard", {timeout: 10000, visible: true});
+}
+async function WriteTitle(title, stream){
+	for(var i = 0; i < 25; i++)
+		stream.write("=")
+	stream.write(title);
+	for(var i = 0; i < 25; i++)
+		stream.write("=")
+	stream.write("\n");
+}
+async function WriteDataToFile(packages, refsAndServices, name){
+	let stream = fs.createWriteStream(DOMESTIC_PATH + name + ".txt");
+	stream.once('open', () => {
+		// PACKAGES
+		WriteTitle("Packages", stream);
+		for(var i = 0; i < packages.length; i++){
+			stream.write("Package #" + i + "\n");
+			stream.write("\tType: " + packages[i].type + "\n");
+			stream.write("\tQuantity: " + packages[i].quantity + "\n");
+
+			if(packages[i].type != "EV"){
+				stream.write("\tWeight: " + packages[i].weight + "\n");
+				stream.write("\tLength: " + packages[i].length + "\n");
+				stream.write("\tWidth: " + packages[i].width + "\n");
+				stream.write("\tHeight: " + packages[i].height + "\n");
+			}
+			stream.write("\tInstructions: " + packages[i].instructions + "\n");
+		}
+
+		// REFERENCES
+		WriteTitle("References", stream);
+		let refs = refsAndServices.references;
+		stream.write("\tEmployee Number: " + refs.employee + "\n");
+		stream.write("\tInvoice Number: " + refs.invoice + "\n");
+		stream.write("\tPurchase Order number" + refs.order + "\n");
+		stream.write("\tPre-Sold Order Reference #" + refs.reference + "\n");
+
+
+		// SERVICES
+		WriteTitle("Services", stream);
+		let services = refsAndServices.services;
+		services.forEach((service) => {
+			stream.write("\t" + service + "\n");
+		});
+	});
 }
 
 async function CreateDomesticShipment(from, to, type, account, serviceType, pickupReady, pickupClosing, pickupPoint, name){
@@ -93,10 +141,14 @@ async function CreateDomesticShipment(from, to, type, account, serviceType, pick
 		await page.waitFor(1000);
 		pages = await browser.pages();
 	}
+
 	let popup = pages.pop();
 	await popup.waitFor(7500); // Give the popup time to load
-	await popup.screenshot({path: "images/wizard/" + name + ".png"});
+	await popup.screenshot({path: DOMESTIC_PATH + name + ".png"});
 	await popup.close();
+
+	//WriteDataToFile(packages, refsAndServices, name);
+
 	return true;
 }
 
@@ -130,7 +182,7 @@ async function CreateXBorderShipment(from, to, type, account, serviceType, picku
 	}
 	let popup = pages.pop();
 	await popup.waitFor(7500); // Give the popup time to load
-	await popup.screenshot({path: "images/wizard/" + name + ".png"});
+	await popup.screenshot({path: XBORDER_PATH + name + ".png"});
 	await popup.close();
 	return true;
 }
@@ -151,14 +203,22 @@ const DOMESTIC_FILENAME_PREFIX = "wizard_domestic_test_";
 const XBORDER_FILENAME_PREFIX = "wizard_xborder_test_";
 export const Domestic = {
 	T1: async () => {
-		return await CreateDomesticShipment("Dicom Shipping Test", "Jeremy Corp", PAYMENT_TYPES.prepaid, ACCOUNTS.ca_parcel, SERVICE_TYPES.ground, 
-					PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor, DOMESTIC_FILENAME_PREFIX + "one");
+		try {
+			return await CreateDomesticShipment("Dicom Shipping Test", "Jeremy Corp", PAYMENT_TYPES.prepaid, ACCOUNTS.ca_parcel, SERVICE_TYPES.ground, 
+				PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor, DOMESTIC_FILENAME_PREFIX + "one");
+		} catch (error) {
+			return error;
+		}
 	},
 }
 
 export const XBorder = {
 	T1: async () => {
-		return await CreateXBorderShipment("Dicom Shipping Test", "Dicom Eastern Connection - USA", PAYMENT_TYPES.prepaid, ACCOUNTS.ca_parcel, SERVICE_TYPES.ground, 
+		try {
+			return await CreateXBorderShipment("Dicom Shipping Test", "Dicom Eastern Connection - USA", PAYMENT_TYPES.prepaid, ACCOUNTS.ca_parcel, SERVICE_TYPES.ground, 
 					PICKUP_TIMES.nine, PICKUP_TIMES.four_thirty, PICKUP_POINTS.ground_floor, XBORDER_FILENAME_PREFIX + "one");
+		} catch (error) {
+			return error;
+		}
 	},
 }

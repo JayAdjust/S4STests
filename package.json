@@ -5,6 +5,7 @@
   "main": "automated-testing.js",
   "dependencies": {
     "faker": "4.1.0",
+    "fs": "0.0.1-security",
     "jest": "22.1.4",
     "puppeteer": "1.0.0"
   },
