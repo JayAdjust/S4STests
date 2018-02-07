@@ -1,25 +1,24 @@
 =========================Packages=========================
 Package #0
 	Type: [object Object]
-	Quantity: 2
-	Weight: 9
-	Length: 14
-	Width: 13
+	Quantity: 6
+	Weight: 4
+	Length: 8
+	Width: 8
 	Height: 17
-	Instructions: Cotton best-of-breed User-friendly
+	Instructions: Specialist Iowa channels
 Package #1
 	Type: [object Object]
-	Quantity: 4
-	Weight: 1
-	Length: 11
-	Width: 16
-	Height: 7
-	Instructions: Credit Card Account Arkansas Costa Rican Colon
+	Quantity: 5
+	Weight: 5
+	Length: 9
+	Width: 9
+	Height: 9
+	Instructions: Human Rustic deposit
 =========================References=========================
-	Employee Number: 9513087
-	Invoice Number: INV658144
-	Purchase Order number: ORD9442211
-	Pre-Sold Order Reference #: REF271369
+	Employee Number: 8141637
+	Invoice Number: INV2342974
+	Purchase Order number: ORD7069586
+	Pre-Sold Order Reference #: REF288298
 =========================Services=========================
 	DCV
-	PHS

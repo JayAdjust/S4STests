@@ -70,10 +70,13 @@ describe("Pre-tests", () => {
         }catch(error){
             console.log(error);
         }
-
+        contacts.forEach(element => {
+            console.log(element);
+        });
         expect(contacts).toBeDefined();
-    });
+    }, 120000);
 });
+
 
 //test
 let shipment = {

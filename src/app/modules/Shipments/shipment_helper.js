@@ -180,11 +180,12 @@ export const Wizard = {
 	GetRefsServices: () => {
 		return refsServices;
 	},
-
+	
 	GoToWizard: async() => {
-		await page.hover(".menu-item.active.hover-over.shipping");
-		await page.waitForSelector(".sub-routes div:nth-child(2)", {timeout: 10000, visible: true});
-		await page.click(".sub-routes div:nth-child(2)");
+		let wizard_selector = "#root > div > div.page-container > div.view-container > div > div.side-bar > div.menu-item.hover-over.shipping > span > div.sub-routes > div:nth-child(2)";
+		await page.hover("#root > div > div.page-container > div.view-container > div > div.side-bar > div.menu-item.hover-over.shipping");
+		await page.waitForSelector(wizard_selector, {timeout: 10000, visible: true});
+		await page.click(wizard_selector);
 		await page.waitForSelector(".shipping-wizzard", {timeout: 10000, visible: true});
 	},
 	AddressDetails: async(from, to, type, account) => {
