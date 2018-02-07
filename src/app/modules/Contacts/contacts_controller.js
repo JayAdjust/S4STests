@@ -7,7 +7,7 @@ import { Contact } from './contact_helper';
  */ 
 export const Tests = {
     Setup: () => {
-        Contact.Setup();
+        return Contact.Setup();
     },
     GoToContacts: async () => {
         return await Contact.GoToContacts();
@@ -20,5 +20,11 @@ export const Tests = {
     },
     T3: async () => {
         return await Contact.onCreateContact("", "", "", "CA", "H9K1M2", "17960 Rue Foster", "", "Montreal", "Quebec", "Some Contact", "5141111111", "", "", "", false);
+    }
+}
+
+export const ContactList = {
+    GetContactList: async () => {
+        
     }
 }

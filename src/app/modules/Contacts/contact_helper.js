@@ -6,17 +6,15 @@ let browser;
 export const Contact = {
     Setup: () => {
 		page = _.GetPage();
-		browser = _.GetBrowser();
+        browser = _.GetBrowser();
+        
+        return page != null && browser != null;
     },
     GoToContacts: async () => {
-        // hover over the "Manage" section in the sidebar
         await page.hover(".menu-item.hover-over.manage");
-        await page.waitFor(500);
-
-        // click the 1st item that appears (Contacts)
+        await page.waitForSelector(".sub-route div:nth-child(1)", {timeout: 10000, visible: true});
         await page.click(".sub-route div:nth-child(1)");
-        await page.waitFor(500);
-
+        await page.waitForSelector(".manage-contacts-header", {timeout: 10000, visible: true});
         return !!(await page.$(".manage-contacts-header"));
     },
     onCreateContact: async (customerID, billingAccount, company, country, postalCode, address, addressLine2, city, province, attentionTo, phone, phoneExt, email, mobilePhone, wantsSameCompanyName) => {

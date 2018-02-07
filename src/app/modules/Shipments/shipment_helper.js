@@ -1,11 +1,12 @@
 import { _ } from '../Start/start_controller';
 import faker from 'faker';
+import fs, { read } from 'fs';
 
 // Constants
 const measurements = ["metric", "imperial"];
 const parcelPackages = ["EV", "BX"];
 const freightPackages = ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"];
-const additionalServices = ["HPF","NCV","TRD","WKD","DCV"];
+const additionalServices = ["HFP","NCV","TRD","WKD","DCV","PHS"];
 const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup",
 	"Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
 const purposes = ["COM","PER","DOC","RET"];
@@ -15,6 +16,9 @@ const broker = "cisuu7xyi000o0yghovn49w6u";
 // FIELDS
 let page;
 let browser;
+let currentpkgs;
+let refsServices;
+let currentAccount;
 
 /**
  * <Private Functions>
@@ -35,117 +39,43 @@ async function GetToContact(to){
 	await page.click(".contact-entry-item");
 	await page.waitForSelector(".address-bubble.orange-active", {timeout: 10000, visible: true});
 }
-
-// Function to change billing accounts,
-// value: billing account value within the select
-async function changeBillingAccount(value){
-	await page.waitForSelector("select[name=billing_account]", {timeout: 10000, visible: true});
-	await page.select("select[name=billing_account]", value);
+async function changeSelect(name, value){
+	let ready = false;
+	while(!ready){
+		await page.select("select[name="+name+"]", value);
+		ready = (await page.$eval("select[name="+name+"]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		})) == value;
+	}
 }
+async function changeInput(name, value){
+	let ready = false;
+	while(!ready){
+		await page.click("input[name="+name+"]");
+		await page.$eval("input[name="+name+"]",(element) => {
+    	    element.value = "";
+		});
+		await page.type("input[name="+name+"]",value);
 
-// Function to change the payment type,
-// value: the payment type to change to
-async function changePaymentType(type){
-	await page.waitForSelector("select[name=payment_type]", {timeout: 10000, visible: true});
-	await page.select("select[name=payment_type]", type);
+		ready = (await page.$eval("input[name="+name+"]",(element) => {
+			return element.value;
+		})) == value;
+	}
 }
+async function changeReference(number, value){
+	// Number: 1=EMP, 2=INV, 3=PON, 4=PRE 
+	let ready = false;
+	while(!ready){
+		await page.click(".kv-inputs div:nth-child("+ number +") input:nth-child(2)");
+		await page.$eval(".kv-inputs div:nth-child("+ number +") input:nth-child(2)", (element) => {
+			element.value = "";
+		});
 
-// Function to change the pickup date
-// value: date to change to
-async function changePickupDate(){
-	let currentDate = new Date();
-	currentDate.setDate(currentDate.getDate() + 1);
-	await page.select("select[name=pickup_date]",currentDate.toISOString().split('T')[0]);
-}
-
-// Function to change the service type
-// value: service type
-async function changeServiceType(type){
-	// GRD OR AIR
-	await page.select("select[name=service_type]", type);
-}
-
-// Function to change the pickup point
-// value: the pickup point value
-async function changePickupPoint(value){
-	await page.select("select[name=pickup_point]", value);
-}
-
-// Function to change the ready by time
-// value: the time to change to
-async function changePickupReadyBy(value){
-	await page.select("select[name=pickup_ready_by]", value);
-}
-
-// Function to change the pickup closing time
-// value: time to change the pickup closing time to
-async function changePickupClosingTime(value){
-	await page.select("select[name=pickup_closing_time]", value);
-}
-
-// **Function to change the employee number
-// value: value to change the employee number to
-async function changeEMP(value){
-	await page.click(".kv-inputs div:nth-child(1) input:nth-child(2)");
-	await page.evaluate(function() {
-		document.querySelector('.kv-inputs div:nth-child(1) input:nth-child(2)').value = "";
-	});
-	await page.type('.kv-inputs div:nth-child(1) input:nth-child(2)', value);
-}
-
-// **Function to change the invoice number
-// value: value to change the invoice number to
-async function changeINV(value){
-	await page.click(".kv-inputs div:nth-child(2) input:nth-child(2)");
-	await page.evaluate(function() {
-		document.querySelector('.kv-inputs div:nth-child(2) input:nth-child(2)').value = "";
-	});
-	await page.type('.kv-inputs div:nth-child(2) input:nth-child(2)', value);
-}
-
-// **Function to change the 
-// @value:
-async function changePON(value){
-	await page.click(".kv-inputs div:nth-child(3) input:nth-child(2)");
-	await page.evaluate(function() {
-		document.querySelector('.kv-inputs div:nth-child(3) input:nth-child(2)').value = "";
-	});
-	await page.type('.kv-inputs div:nth-child(3) input:nth-child(2)', value);
-}
-
-// **Function to change the 
-// value:
-async function changePRE(value){
-	await page.click(".kv-inputs div:nth-child(4) input:nth-child(2)");
-	await page.evaluate(function() {
-		document.querySelector('.kv-inputs div:nth-child(4) input:nth-child(2)').value = "";
-	});
-	await page.type('.kv-inputs div:nth-child(4) input:nth-child(2)', value);
-}
-
-// Function
-// service:
-async function AddAdditionalService(service){
-	switch(service){
-		// PARCEL
-		case "HPF": await page.click("input[name=HFP]"); break;
-		case "NCV": await page.click("input[name=NCV]"); break;
-		case "TRD": await page.click("input[name=TRD]"); break;
-		case "WKD": await page.click("input[name=WKD]"); break;
-		case "DCV": await page.click("input[name=DCV]"); break;
-
-		// FREIGHT
-		case "Appointment": await page.click("input[name=Appointment]"); break;
-		case "COD": await page.click("input[name=COD]"); break;
-		case "Heating": await page.click("input[name=Heating]"); break;
-		case "Hold for pick up Saturday": await page.click("input[name=Hold for pick up Saturday]"); break;	
-		case "Hold for pickup": await page.click("input[name=Hold for pickup]"); break;	
-		case "Inside delivery": await page.click("input[name=Inside delivery]"); break;	
-		case "Private house": await page.click("input[name=Private house]"); break;	
-		case "Private house pick up": await page.click("input[name=Private house pick up]"); break;	
-		case "Tailgate": await page.click("input[name=Tailgate]"); break;
-		case "Tailgate pick up": await page.click("input[name=Tailgate pick up]"); break;
-		default: break;
+		await page.type('.kv-inputs div:nth-child('+ number +') input:nth-child(2)', value);
+		ready = (await page.$eval(".kv-inputs div:nth-child("+ number +") input:nth-child(2)", (element) => {
+			return element.value;
+		})) == value;
 	}
 }
 async function ChangeMeasurement(measurement){
@@ -154,143 +84,64 @@ async function ChangeMeasurement(measurement){
 	else
 		await page.click(".control-toggle.weight span:nth-child(1) span:nth-child(1)");
 }
-async function ChangePackageType(type){
-	await page.select("select[name=type]",type);
-}
-async function ChangePackageQuantity(qty){
-	// Click on the element trying to edit
-	await page.click("input[name=quantity]");
-	await page.evaluate(function() {
-        document.querySelector("input[name=quantity]").value = "";
-    });
-	await page.type("input[name=quantity]", qty);
-}
-async function ChangePackageWeight(wght){
-	await page.click("input[name=weight]");
-	await page.evaluate(function() {
-        document.querySelector("input[name=weight]").value = "";
-    });
-	await page.type("input[name=weight]", wght);
-}
-async function ChangePackageDimensions(length, width, height){
-	// Length
-	let ready = false;
-	while(!ready){
-		await page.click("input[name=length]");
-		await page.evaluate(() => {
-    	    document.querySelector("input[name=length]").value = "";
-		});
-		await page.type("input[name=length]",length);
-
-		ready = (await page.evaluate(() => {
-			return document.querySelector("input[name=length]").value;
-		})) == length;
-
-	}
-
-	// Width
-	ready = false;
-	while(!ready){
-		await page.click("input[name=width]");
-		await page.evaluate(() => {
-    	    document.querySelector("input[name=width]").value = "";
-		});
-		await page.type("input[name=width]",width);
-
-		ready = (await page.evaluate(() => {
-			return document.querySelector("input[name=width]").value;
-		})) == width;
-
-	}
-
-	// Height
-	ready = false;
-	while(!ready){
-		await page.click("input[name=height]");
-		await page.evaluate(() => {
-    	    document.querySelector("input[name=height]").value = "";
-		});
-		await page.type("input[name=height]",height);
-
-		ready = (await page.evaluate(() => {
-			return document.querySelector("input[name=height]").value;
-		})) == height;
-
-	}
-}
-async function ChangePackageInstructions(instructions){
-	await page.click("input[name=instructions]");
-	await page.evaluate(function() {
-        document.querySelector("input[name=instructions]").value = "";
-	});
-	await page.type("input[name=instructions]", instructions);
-}
-async function GenerateParcelAdditionalServices(){
+async function GenerateAdditionalServices(account){
 	// Generate a random number of services to select
-	let numServices = Math.floor(Math.random() * 4);
+	let numServices = Math.floor(Math.random() * 3);
 	// Create an array to send back all services that were added
 	let selected = [];
+
+	// Check if a private home delivery
+	let homeDelivery;
+	try{
+		homeDelivery = await page.$eval("input[name=PHD]", (element) => {
+			return element.checked;
+		});
+	}catch(error){}
+
 	// add numServices amount of additional services
 	for(let i = 0; i < numServices; i++){
 		// Get a random service
-		let serv = additionalServices[Math.floor(Math.random() * additionalServices.length)];
+		let serv = account != "8292093"?  
+			additionalServices[Math.floor(Math.random() * additionalServices.length)] : 
+			freightServices[Math.floor(Math.random() * freightServices.length)];
 
 		// If it's already selected, continue trying to select another
 		if(selected.indexOf(serv) != -1){
 			i--;
 			continue;
 		}
-		
+
 		// If WKD or DVC are already select and the current random service is either or,
 		// get another due to not being able to do add WKD if DVC, or other way around
-		if(serv == "WKD" || serv == "DVC"){
-			if(selected.indexOf("WKD") != -1 || selected.indexOf("DVC") != -1){
+		if(serv == "DCV" || serv == "WKD"){
+			if(selected.indexOf("WKD") != -1 || selected.indexOf("DCV") != -1){
 				i--;
 				continue;
 			}
 		}
 
-		// Add the addtional service if passed everythign else
-		await AddAdditionalService(serv);
-
-		if(serv == "DVC"){
-			await page.waitForSelector("input[name=DVC]", {timeout: 10000, visible: true});
-			await page.type("input[name=DVC]", "10");
-		}
-
-		// push to the array
-		selected.push(serv);
-	}
-
-	return selected;
-}
-async function GenerateFreightAdditionalServices(){
-	// Generate a random number of services to select
-	let numServices = Math.floor(Math.random() * 5);
-	// Create an array to send back all services that were added
-	let selected = [];
-	// add numServices amount of additional services
-	for(let i = 0; i < numServices; i++){
-		// Get a random service
-		let serv = freightServices[Math.floor(Math.random() * freightServices.length)];
-
-		// If it's already selected, continue trying to select another
-		if(selected.indexOf(serv) != -1){
-			i--;
+		// If it's a home delivery trade show is not available
+		// If it's not a home delivery PHS is not available
+		if((serv == "TRD" && homeDelivery) || serv == "PHS" && !homeDelivery)
 			continue;
-		}
 
 		// Add the addtional service if passed everythign else
-		await AddAdditionalService(serv);
+		let ready = false;
+		while(!ready){
+			ready = await page.$eval("input[name="+ serv +"]", (element) => {
+				element.click();
+				return element.checked;
+			});
+		}
 
-		if(serv == "DVC"){
-			await page.type("input[name=DVC]", "10");
+		if(serv == "DCV"){
+			await page.waitForSelector(".dicom-surcharge-input", {timeout: 10000, visible: true});
+			await page.type(".dicom-surcharge-input", "10");
 		}
 
 		// push to the array
 		selected.push(serv);
 	}
-
 	return selected;
 }
 
@@ -299,9 +150,12 @@ async function GenerateFreightAdditionalServices(){
  */
 
 export const PackageDetails = {
-	ParcelPackageRandomizer: () => {
+	PackageRandomizer: () => {
 		return {
-			type: parcelPackages[Math.floor(Math.random() * parcelPackages.length)],
+			type: {
+				parcel: parcelPackages[Math.floor(Math.random() * parcelPackages.length)],
+				freight: freightPackages[Math.floor(Math.random() * freightPackages.length)]
+			},
 			measurement: measurements[Math.floor(Math.random() * measurements.length)],
 			quantity: Math.floor(Math.random() * 5) + 2,
 			weight: Math.floor(Math.random() * 10) + 1,
@@ -310,22 +164,8 @@ export const PackageDetails = {
 			height: Math.floor(Math.random() * 15) + 5,
 			instructions: faker.random.words(3)
 		};
-	},
-	FreightPackageRandomizer: () => {
-		return {
-			type: freightPackages[Math.floor(Math.random() * freightPackages.length)],
-			measurement: measurements[Math.floor(Math.random() * measurements.length)],
-			quantity: Math.floor(Math.random() * 5) + 2,
-			weight: Math.floor(Math.random() * 10) + 1,
-			length: Math.floor(Math.random() * 20) + 5,
-			width: Math.floor(Math.random() * 20) + 5,
-			height: Math.floor(Math.random() * 20) + 5,
-			instructions: faker.random.words(3)
-		};
 	}
 };
-
-let currentAccount;
 
 export const Wizard = {
 	Setup: () => {
@@ -334,26 +174,28 @@ export const Wizard = {
 
 		return page != null && browser != null;
 	},
+	GetCurrentPackages: () => {
+		return currentpkgs;
+	},
+	GetRefsServices: () => {
+		return refsServices;
+	},
 
-	// Function
-	// 
 	GoToWizard: async() => {
 		await page.hover(".menu-item.active.hover-over.shipping");
 		await page.waitForSelector(".sub-routes div:nth-child(2)", {timeout: 10000, visible: true});
 		await page.click(".sub-routes div:nth-child(2)");
 		await page.waitForSelector(".shipping-wizzard", {timeout: 10000, visible: true});
 	},
-
-	// Funtion
 	AddressDetails: async(from, to, type, account) => {
 		// Get the from contact
 		await GetFromContact(from);
 		// Get the to contact
 		await GetToContact(to);
 		// Chnage the payment type
-		await changePaymentType(type);
+		await changeSelect("payment_type", type);
 		// Change the billing account
-		await changeBillingAccount(account);
+		await changeSelect("billing_account", account)
 		
 		currentAccount = account;
 	},
@@ -364,37 +206,40 @@ export const Wizard = {
 		// Create packageCount number of packages
 		for(let i=0; i < packageCount; i++){
 			// Generate a random package
-			let _package = currentAccount != "8292093" ? PackageDetails.ParcelPackageRandomizer() : PackageDetails.FreightPackageRandomizer();
-
+			let _package = PackageDetails.PackageRandomizer();
 			// Change the type of package
-			await ChangePackageType(_package.type);
-
+			await changeSelect("type", currentAccount != "8292093"? _package.type.parcel : _package.type.freight);
 			// Change the quantity to the package
-			await ChangePackageQuantity(_package.quantity.toString());
+			//await ChangePackageQuantity(_package.quantity.toString());
+			await changeInput("quantity", _package.quantity.toString());
 
 			// Check to see if the package is an Envelope
-			if(_package.type != "EV"){
+			if(currentAccount != "8292093" && _package.type.parcel != "EV"){
 				// Measurement disabled for now
 				//await ChangeMeasurement(_package.measurement);await page.waitFor(1500);
-				await ChangePackageWeight(_package.weight.toString());
-				await ChangePackageDimensions(_package.length.toString(), _package.width.toString(), _package.height.toString());
+				await changeInput("weight", _package.weight.toString());
+				await changeInput("length", _package.length.toString());
+				await changeInput("width", _package.width.toString());
+				await changeInput("height", _package.height.toString());
 			}
 
 			// Change the instructions
-			await ChangePackageInstructions(_package.instructions);
+			await changeInput("instructions", _package.instructions);
 
 			// Change the service type
-			await changeServiceType(service);
+			await changeSelect("service_type", service);
+
 			// Change the pickup date
-			await changePickupDate();
+			let currentDate = new Date();
+			currentDate.setDate(currentDate.getDate() + 1);
+			await changeSelect("pickup_date", currentDate.toISOString().split('T')[0]);
 
 			// Click on add package
 			await page.click(".btn.btn-md.btn-secondary.inline");
-
 			// Add package to the array
 			packages.push(_package);
 		}
-
+		currentpkgs = packages;
 		return packages;
 	},
 	CustomsDetails: async() => {
@@ -427,14 +272,14 @@ export const Wizard = {
 
 	},
 	ConfirmAndPay: async(readyBy, closingTime, pickupPoint, account) => {
-		await page.waitFor(2000);
+		await page.waitFor(2500);
 
 		// Change the pickupPoint
-		await changePickupPoint(pickupPoint);
+		await changeSelect("pickup_point", pickupPoint);
 		// Change Pickup ready by
-		await changePickupReadyBy(readyBy);
+		await changeSelect("pickup_ready_by", readyBy);
 		// Change pickup closing time
-		await changePickupClosingTime(closingTime);
+		await changeSelect("pickup_closing_time", closingTime);
 
 		// Generate random references and save them in order to 
 		// send them back for validation on printing
@@ -445,16 +290,23 @@ export const Wizard = {
 			reference: "REF" + faker.random.number({min: 10000, max: 9999999})
 		};
 
-		// Change all references
-		await changeEMP(references.employee);
-		await changeINV(references.invoice);
-		await changePON(references.order);
-		await changePRE(references.reference);
+		console.log(references);
+		// Change all references 1=EMP, 2=INV, 3=PON, 4=PRE 
+		await changeReference(1,references.employee);
+		await changeReference(2,references.invoice);
+		await changeReference(3,references.order);
+		await changeReference(4,references.reference);
 
-		let selected = account != "8292093"? await GenerateParcelAdditionalServices() : await GenerateFreightAdditionalServices();
-	
+		let selected = await GenerateAdditionalServices(account);
+
+		refsServices = {references: references, services: selected};
 		return {references: references, services: selected};
 	},
+	RestartShipment: async () => {
+		await Wizard.GoToWizard();
+		await page.click(".dicon-redo");
+		await page.waitForSelector(".shipping-wizzard", {timeout: 10000, visible: true});
+	}
 }
 
 export const Quick = {
@@ -470,5 +322,55 @@ export const Quick = {
 	Setup: () => {
 		page = _.GetPage();
 		browser = _.GetBrowser();
+	}
+}
+
+async function WriteTitle(title, stream){
+	for(var i = 0; i < 25; i++)
+		stream.write("=")
+	stream.write(title);
+	for(var i = 0; i < 25; i++)
+		stream.write("=")
+	stream.write("\n");
+}
+
+export const Writer = {
+	WriteDataToFile: async (full_path) => {
+		let packages = currentpkgs;
+		let refs = refsServices.references;
+		let services = refsServices.services;
+		let stream = fs.createWriteStream(full_path);
+
+		stream.once('open', () => {
+			// PACKAGES
+			WriteTitle("Packages", stream);
+			for(var i = 0; i < packages.length; i++){
+				stream.write("Package #" + i + "\n");
+				stream.write("\tType: " + packages[i].type + "\n");
+				stream.write("\tQuantity: " + packages[i].quantity + "\n");
+	
+				if(packages[i].type != "EV"){
+					stream.write("\tWeight: " + packages[i].weight + "\n");
+					stream.write("\tLength: " + packages[i].length + "\n");
+					stream.write("\tWidth: " + packages[i].width + "\n");
+					stream.write("\tHeight: " + packages[i].height + "\n");
+				}
+				stream.write("\tInstructions: " + packages[i].instructions + "\n");
+			}
+	
+			// REFERENCES
+			WriteTitle("References", stream);
+			stream.write("\tEmployee Number: " + refs.employee + "\n");
+			stream.write("\tInvoice Number: " + refs.invoice + "\n");
+			stream.write("\tPurchase Order number: " + refs.order + "\n");
+			stream.write("\tPre-Sold Order Reference #: " + refs.reference + "\n");
+	
+	
+			// SERVICES
+			WriteTitle("Services", stream);
+			services.forEach((service) => {
+				stream.write("\t" + service + "\n");
+			});
+		});
 	}
 }

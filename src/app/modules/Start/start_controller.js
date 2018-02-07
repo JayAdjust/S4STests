@@ -22,7 +22,8 @@ export const _ = {
             height: 0,
             deviceScaleFactor: 1
         });
-
+        await page.keyboard.press("F11");
+        await page.keyboard.press("F11");
         let pages = await browser.pages();
         await pages[0].close();
 

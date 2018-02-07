@@ -1,0 +1,25 @@
+=========================Packages=========================
+Package #0
+	Type: [object Object]
+	Quantity: 2
+	Weight: 9
+	Length: 14
+	Width: 13
+	Height: 17
+	Instructions: Cotton best-of-breed User-friendly
+Package #1
+	Type: [object Object]
+	Quantity: 4
+	Weight: 1
+	Length: 11
+	Width: 16
+	Height: 7
+	Instructions: Credit Card Account Arkansas Costa Rican Colon
+=========================References=========================
+	Employee Number: 9513087
+	Invoice Number: INV658144
+	Purchase Order number: ORD9442211
+	Pre-Sold Order Reference #: REF271369
+=========================Services=========================
+	DCV
+	PHS
