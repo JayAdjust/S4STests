@@ -119,10 +119,12 @@ export const Contact = {
                 await page.click(".auto-address-item div:nth-child(1)");
             } else {
                 // when the auto complete window didn't show up, type in the city manually
-                await ClearInputBox("input[name=city]");
+                await page.waitFor(3000);
                 await page.focus("input[name=city]");
+                await page.waitFor(300);
                 await page.waitFor(20);
                 await page.type("input[name=city]", city);
+                await page.waitFor(3000);
 
                 // removed - enter a valid postal code and it fills this in for you
                 //await page.focus("input[name=state]");
@@ -139,11 +141,8 @@ export const Contact = {
             }
 
             // enter "Attention To"
-            await page.waitFor(2000);
-            await page.focus("input[name=person_full_name]");
             await ClearInputBox("input[name=person_full_name]");
-            await page.waitFor(2000);
-            //await page.focus("input[name=person_full_name]");
+            await page.focus("input[name=person_full_name]");
             await page.waitFor(5);
             await page.type("input[name=person_full_name]", attentionTo);
 
@@ -192,93 +191,10 @@ export const Contact = {
 }
 
 async function ClearInputBox(e) {
-    await page.evaluate(function(e) {
-        document.querySelector(e).value = "";
-    }, e);
-}
-
-async function ClearAllTextBoxes() {
-    /*
-    await page.focus("input[name=customer_id]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=customer_id]').value = "";
+    //await page.evaluate(function(e) {
+        //document.querySelector(e).value = '';
+    //}, e);
+    await page.$eval(e, input => {
+        input.value = "";
     });
-
-    await page.focus("input[name=billing_account]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=billing_account]').value = "";
-    });
-    */
-
-    await page.focus("input[name=company_name]");
-    await page.waitFor(500);
-    console.log("CLEARING!");
-    await page.evaluate(function() {
-        document.querySelector('input[name=company_name]').value = '';
-    });
-    await page.waitFor(1000);
-
-    /*
-    await page.focus("input[name=postal_code]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=postal_code]').value = "";
-    });
-
-    await page.focus(".address-field.form-group.std input");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('.address-field.form-group.std input').value = "";
-    });
-
-    await page.focus("input[name=street_line_2]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=street_line_2]').value = "";
-    });
-
-    await page.focus("input[name=city]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=city]').value = "";
-    });
-
-    await page.focus("input[name=state]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=state]').value = "";
-    });
-
-    await page.focus("input[name=person_full_name]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=person_full_name]').value = "";
-    });
-
-    await page.focus("input[name=phone]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=phone]').value = "";
-    });
-
-    await page.focus("input[name=phone_ext]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=phone_ext]').value = "";
-    });
-
-    await page.focus("input[name=email]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=email]').value = "";
-    });
-
-    await page.focus("input[name=mobile_phone]");
-    await page.waitFor(100);
-    await page.evaluate(function() {
-        document.querySelector('input[name=mobile_phone]').value = "";
-    });
-    */
 }
