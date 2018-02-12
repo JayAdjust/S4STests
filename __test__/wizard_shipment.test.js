@@ -37,6 +37,10 @@ afterAll(() => {
 
 // Before and After each test
 beforeEach(() => {
+    if(res != Math.pow(2, count)-1){
+        //console.log(res.toString(2));     
+        Wizard.Tests.error();
+    }
     count++;
 });
 afterEach(() => {
@@ -67,11 +71,6 @@ let res = 0, count = 0;
  *  Pre-Test:
  *******************************************************/
 describe("Pre-tests", () => {
-    afterAll(() => {
-        if(res != Math.pow(2, count)-1)
-            Wizard.CONTINUE = false;
-    });
-
     test("Page and browser are not null",() => {
         page = _.GetPage();
         browser = _.GetBrowser();
@@ -141,8 +140,7 @@ describe("Pre-tests", () => {
     });*/
 });
 
-//test
-/*
+//Domestic parcel
 describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
     let shipment = {
         from: "Dicom Shipping Test",
@@ -155,8 +153,11 @@ describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
         point: PICKUP_POINTS.mailbox
     };
     Wizard.Tests.GenerateDomesticTest(shipment);
-});*/
+}, 60000);
 
+/*
+// Doesn't work if a machine number is on the account...
+// Domestic freight
 describe("TEST DOMESTIC FREIGHT SHIPMENT", () => {
     let shipment = {
         from: "Dicom Shipping Test",
@@ -169,4 +170,4 @@ describe("TEST DOMESTIC FREIGHT SHIPMENT", () => {
         point: PICKUP_POINTS.mailbox
     };
     Wizard.Tests.GenerateDomesticTest(shipment);
-});
+});*/

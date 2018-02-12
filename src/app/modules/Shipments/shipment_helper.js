@@ -270,9 +270,7 @@ export const Wizard = {
 		// If duty applies 
 		await page.select("select[name=bill_to]", details.duty);
 
-		// Click on next
-		await page.waitFor(3000);
-		await page.click(".btn.next");
+		return details;
 
 	},
 	ConfirmAndPay: async(readyBy, closingTime, pickupPoint, account) => {
