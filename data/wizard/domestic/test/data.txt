@@ -1,24 +1,15 @@
 =========================Packages=========================
 Package #0
 	Type: [object Object]
-	Quantity: 6
-	Weight: 4
-	Length: 8
-	Width: 8
-	Height: 17
-	Instructions: Specialist Iowa channels
-Package #1
-	Type: [object Object]
-	Quantity: 5
+	Quantity: 2
 	Weight: 5
-	Length: 9
-	Width: 9
-	Height: 9
-	Instructions: Human Rustic deposit
+	Length: 6
+	Width: 6
+	Height: 6
+	Instructions: synergize Investor virtual
 =========================References=========================
-	Employee Number: 8141637
-	Invoice Number: INV2342974
-	Purchase Order number: ORD7069586
-	Pre-Sold Order Reference #: REF288298
+	Employee Number: 5731593
+	Invoice Number: INV6895738
+	Purchase Order number: ORD2611489
+	Pre-Sold Order Reference #: REF1852196
 =========================Services=========================
-	DCV

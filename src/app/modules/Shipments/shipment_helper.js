@@ -2,6 +2,9 @@ import { _ } from '../Start/start_controller';
 import faker from 'faker';
 import fs, { read } from 'fs';
 
+
+// TODO: Create a module for all puppeteer repetitive uses
+
 // Constants
 const measurements = ["metric", "imperial"];
 const parcelPackages = ["EV", "BX"];

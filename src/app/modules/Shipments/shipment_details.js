@@ -3,16 +3,19 @@ import faker from "faker";
 export const PAYMENT_TYPES = {
 	prepaid: "PREPAID",
 	collect: "COLLECT",
-	third_party: "THIRD_PARTY"
+	third_party: "THIRD_PARTY",
+	array: ["PREPAID","COLLECT","THIRD_PARTY"]
 };
 export const ACCOUNTS = {
 	ca_parcel: "300030",
 	us_parcel: "41562",
-	ca_freight: "8292093"
+	ca_freight: "8292093",
+	array: ["300030","41562","8292093"]
 };
 export const SERVICE_TYPES = {
 	air: "AIR",
-	ground: "GRD"
+	ground: "GRD",
+	array: 	["AIR","GRD"]
 };
 export const PICKUP_POINTS = {
 	office: "BU",
@@ -21,7 +24,8 @@ export const PICKUP_POINTS = {
 	other: "OT",
 	home: "PH",
 	basement: "SS",
-	mailbox: "MB"
+	mailbox: "MB",
+	array: ["BU","RC","MR","OT","PH","SS","MB"]
 };
 export const PICKUP_TIMES = {
 	seven_thirty: "7:30",
@@ -47,5 +51,6 @@ export const PICKUP_TIMES = {
 	five_thirty: "17:30",
 	six: "18:00",
 	six_thirty: "18:30",
-	seven: "19:00"
+	seven: "19:00",
+	array: ["7:30","8:00","8:30","9:00","9:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00",]
 }
