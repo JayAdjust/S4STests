@@ -1,5 +1,6 @@
 import { _ } from '../Start/start_controller';
 import { Wizard, Writer } from './shipment_helper';
+import { Manifest } from '../Manifests/manifests_helper';
 import faker from "faker";
 
 const PAYMENT_TYPES = {
@@ -79,6 +80,9 @@ export const Tests = {
 			info.closing,
 			info.point
 		);
+	},
+	GenerateManifest: (showPricing, address) => {
+		GenerateManifest(showPricing, address);
 	},
 	GenerateXBorderTest: (info) => {
 		anyErrors = false;
@@ -415,5 +419,51 @@ function ConfirmPayTests(pickupReady,pickupClosing,pickupPoint,account,path){
 				expect(errorThrown).toBeUndefined();
 			}, 10000);			
 		});
+	});
+}
+function GenerateManifest(showPricing, address){
+	let popup;
+	describe("Generating a manifest", () => {
+		test("Go to Shipments", async () => {
+			await Manifest.GoToManifests();
+			let element = await page.$(".shipment-table-container");
+			expect(element).toBeDefined();
+		}, 10000);
+
+		test("Generating Manifest", async () => {
+			let pages = await browser.pages();
+			let beforeCount = pages.length;
+			await page.click("div.shipment-table-filters > div.shipment-select-filters > button:nth-child(3)");
+
+			if(showPricing)
+				await page.click("div.pickup-options-container > div.dicom-checkbox-group.checkbox > label");
+
+			let numItems = await page.$eval("div.pickup-address-list", (element) => {
+                return element.childElementCount;
+			});
+			
+			for(var i = 1; i < numItems; i++){
+				let addr = await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(1)", (element) => {
+					return element.innerText();
+				});
+				addr += await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(3)", (element) => {
+					return element.innerText();
+				});
+				addr += await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(3)", (element) => {
+					return element.innerText();
+				});
+				console.log(addr);
+				if(addr == address)
+					await page.click("div.pickup-address-list > div:nth-child("+ (i + 1) +") > div.pickup-main-item > div.dicom-checkbox-group.checkbox > label");
+			}
+			await page.click("div.manifest-action-container > button > span");
+			pages = await browser.pages();
+			while(pages.length < beforeCount + 1){
+				await page.waitFor(1000);
+				pages = await browser.pages();
+			}
+			popup = pages.pop();
+			expect(popup.url()).toMatch(/blob:*/)
+		}, 25000);
 	});
 }

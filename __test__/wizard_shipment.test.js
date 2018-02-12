@@ -1,6 +1,7 @@
 import { _ } from '../src/app/modules/Start/start_controller';
 import * as Wizard from '../src/app/modules/Shipments/wizard_controller';
 import * as Helper from '../src/app/modules/Shipments/shipment_helper';
+import { Manifest } from '../src/app/modules/Manifests/manifests_helper';
 import { SignIn } from '../src/app/modules/Signin/signin_helper';
 import { PAYMENT_TYPES, ACCOUNTS, SERVICE_TYPES, PICKUP_POINTS, PICKUP_TIMES} from '../src/app/modules/Shipments/shipment_details';
 import * as Contact from '../src/app/modules/Contacts/contacts_controller';
@@ -87,6 +88,9 @@ describe("Pre-tests", () => {
     test("Contacts setup", () => {
         expect(Contact.Tests.Setup()).toBe(true);
     }, 1000);
+    test("Manifest Setup", () => {
+        expect(Manifest.Setup()).toBe(true);
+    });
     test("Signing in", async () => {
         expect(await SignIn.onSignIn(USERNAME, PASSWORD)).toBe(true);
     }, 5000);
@@ -153,7 +157,12 @@ describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
         point: PICKUP_POINTS.mailbox
     };
     Wizard.Tests.GenerateDomesticTest(shipment);
-}, 60000);
+    Wizard.Tests.GenerateDomesticTest(shipment);
+    Wizard.Tests.GenerateManifest(true, "10500 RYAN DORVAL, QC H9P2T7, CA");
+}, 150000);
+
+
+// Generate manifest
 
 /*
 // Doesn't work if a machine number is on the account...
@@ -170,4 +179,18 @@ describe("TEST DOMESTIC FREIGHT SHIPMENT", () => {
         point: PICKUP_POINTS.mailbox
     };
     Wizard.Tests.GenerateDomesticTest(shipment);
-});*/
+}, 60000);*/
+/*
+describe("TEST XBORDER SHIPMENT", () => {
+    let shipment = {
+        from: "Dicom Shipping Test",
+        to: "Dicom Eastern Connection - USA",
+        payment: PAYMENT_TYPES.prepaid,
+        account: ACCOUNTS.ca_parcel,
+        service: SERVICE_TYPES.ground,
+        ready: PICKUP_TIMES.eight,
+        closing: PICKUP_TIMES.four_thirty,
+        point: PICKUP_POINTS.mailbox
+    };
+    Wizard.Tests.GenerateXBorderTest(shipment);
+}, 100000);*/
