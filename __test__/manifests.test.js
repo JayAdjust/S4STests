@@ -71,7 +71,7 @@ describe("Manifests", () => {
      *  Test #5:
      *******************************************************/
     test("Generate manifests with previous shipments", async () => {
-        var response = await Manifests.Tests.T5();
+        var response = await Manifests.Tests.T1();
         expect(response.success).toBe(true);
     }, 16000);
 });
