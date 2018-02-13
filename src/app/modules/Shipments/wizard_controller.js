@@ -2,6 +2,7 @@ import { _ } from '../Start/start_controller';
 import { Wizard, Writer } from './shipment_helper';
 import { Manifest } from '../Manifests/manifests_helper';
 import faker from "faker";
+import fs from 'fs';
 
 const PAYMENT_TYPES = {
 	prepaid: "PREPAID",
@@ -78,11 +79,12 @@ export const Tests = {
 			info.service,
 			info.ready,
 			info.closing,
-			info.point
+			info.point,
+			info.path
 		);
 	},
-	GenerateManifest: (showPricing, address) => {
-		GenerateManifest(showPricing, address);
+	GenerateManifest: (showPricing, address, path) => {
+		GenerateManifest(showPricing, address, path);
 	},
 	GenerateXBorderTest: (info) => {
 		anyErrors = false;
@@ -94,7 +96,8 @@ export const Tests = {
 			info.service,
 			info.ready,
 			info.closing,
-			info.point
+			info.point,
+			info.path
 		);
 
 	},
@@ -119,22 +122,22 @@ export const Tests = {
  * @param {*} _pickupClosing the pickup closing time
  * @param {*} _pickupPoint the pcikup poitn for the shipment
  */
-function DomesticShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint){
+function DomesticShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint, path){
 	let account = _account;
 	
 	ChangeToWizardTests();
 	AddressDetailsTests(_from,_to,_paymentType,_account);
 	PackageDetailsTests(_service, false);
-	ConfirmPayTests(_pickupReady, _pickupClosing, _pickupPoint, _account, "test");
+	ConfirmPayTests(_pickupReady, _pickupClosing, _pickupPoint, _account, path);
 }
-function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint){
+function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint, path){
 	let account = _account;
 	
 	ChangeToWizardTests();
 	AddressDetailsTests(_from,_to,_paymentType,_account);
 	PackageDetailsTests(_service, true);
 	CustomsDetailsTests();
-	ConfirmPayTests(_pickupReady, _pickupClosing, _pickupPoint, _account, "test");
+	ConfirmPayTests(_pickupReady, _pickupClosing, _pickupPoint, _account, path);
 }
 
 /**
@@ -142,13 +145,17 @@ function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pick
  */
  function ChangeToWizardTests(){
 	test("Going to wizard", async () => {
-		await Wizard.GoToWizard();
-		let element = await page.$(".shipping-wizzard");
-		return expect(element).toBeDefined();
+		if(await page.$(".shipping-wizzard") == null){
+			await Wizard.GoToWizard();
+			let element = await page.$(".shipping-wizzard");
+			return expect(element).toBeDefined();
+		}
+		return expect(true).toBe(true);
+
 	}, 2500);
 	test("Restart Shipment", async () => {
 		await Wizard.RestartShipment();
-		let element = await page.$(".shipping-wizzard");
+		let element = await page.$(".split-layout.wizard-address");
 		return expect(element).toBeDefined();
 	}, 2500);
  }
@@ -189,36 +196,44 @@ function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pick
   * 	to see if everything was properly changed
   */
 function AddressDetailsTests(from, to, paymentType, account){
+	let onPage = true;
 	describe("Address Details", () => {
-		if(anyErrors){
-			//exit();
-		}
-
-		// Generate the Addres details (Change all details needed)
-		test("Generating Address Details", async () => {
-			await Wizard.AddressDetails(from, to, paymentType, account);
-			expect(await AddressDetailsValidation(from, to, paymentType, account)).toBe(true);
-		}, 20000);
-
-		// Validate the changes and if they are valid
-		describe("Validations", () => {
-			test("Able to proceed to package details", async () => {
-				let ready = false;
-				while(!ready){
-					ready = await page.$eval(".btn.next", (element) => {
-						return element.innerText == "Next";
-					});
-				}
-				await page.click(".btn.next", {waitUntil: 'networkidle'});
-				let element;
-				try{
-					element = await page.$(".packageForm");
-				}catch(error){
-					console.log(error);
-				}
+		// Check to see if you are on the page
+		describe("Address Details Pre-Tests", () => {
+			test("Check to see if on address Details Page", async () => {
+				let element = await page.$(".split-layout.wizard-address");
+				onPage = element != null;
 				expect(element).toBeDefined();
-			}, 5000);
-		});		
+			});
+		});
+
+		if(onPage){
+			// Generate the Addres details (Change all details needed)
+			test("Generating Address Details", async () => {
+				await Wizard.AddressDetails(from, to, paymentType, account);
+				expect(await AddressDetailsValidation(from, to, paymentType, account)).toBe(true);
+			}, 20000);
+
+			// Validate the changes and if they are valid
+			describe("Validations", () => {
+				test("Able to proceed to package details", async () => {
+					let ready = false;
+					while(!ready){
+						ready = await page.$eval(".btn.next", (element) => {
+							return element.innerText == "Next";
+						});
+					}
+					await page.click(".btn.next", {waitUntil: 'networkidle'});
+					let element;
+					try{
+						element = await page.$(".packageForm");
+					}catch(error){
+						console.log(error);
+					}
+					expect(element).toBeDefined();
+				}, 5000);
+			});
+		}	
 	});
 }
 
@@ -243,35 +258,45 @@ async function PackageDetailsValidations(service, packageCount){
  * 	is valid and chanegd correctly
  */
 function PackageDetailsTests(service, isXBorder){
+	let onPage = true;
 	let packages;
 	// PACKAGE DETAILS
 	describe("Package Details", () => {
-		if(anyErrors){
-			//exit();
-		}
-		let packageCount = Math.floor(Math.random() * 3) + 1;
-		test("Generating Package Details", async () => {
-			packages = await Wizard.PackageDetails(service, packageCount);
-			expect(await PackageDetailsValidations(service, packageCount)).toBe(true);
-		}, 20000);
-
-		describe("Validations", () => {
-			test("Able to proceed to Confirm and pay", async () => {
-				let ready = false;
-				while(!ready){
-					ready = await page.$eval(".btn.next", (element) => {
-						return element.innerText == "Next";
-					});
-				}
-	
-				await page.click(".btn.next", {waitUntil: 'networkidle'});
-				let element = isXBorder? await page.$(".product-table-container") : await page.$(".confirmation-without-customs");
+		// Check to see if you are on the page
+		describe("Package Details Pre-Tests", () => {
+			test("Check to see if on Package Details Page", async () => {
+				let element = await page.$("");
+				onPage = element != null;
 				expect(element).toBeDefined();
-			}, 5000);
+			});
 		});
+
+		if(onPage){
+			let packageCount = Math.floor(Math.random() * 3) + 1;
+			test("Generating Package Details", async () => {
+				packages = await Wizard.PackageDetails(service, packageCount);
+				expect(await PackageDetailsValidations(service, packageCount)).toBe(true);
+			}, 20000);
+
+			describe("Validations", () => {
+				test("Able to proceed to Confirm and pay", async () => {
+					let ready = false;
+					while(!ready){
+						ready = await page.$eval(".btn.next", (element) => {
+							return element.innerText == "Next";
+						});
+					}
+					
+					await page.click(".btn.next", {waitUntil: 'networkidle'});
+					let element = isXBorder? await page.$(".product-table-container") : await page.$(".confirmation-without-customs");
+					expect(element).toBeDefined();
+				}, 5000);
+			});
+		}
 	});
 }
 
+// TODO: fix error with customs details page and validations
 async function CustomsDetailsValidations(details){
 	return true;
 }
@@ -395,6 +420,20 @@ function ConfirmPayTests(pickupReady,pickupClosing,pickupPoint,account,path){
 		});
 
 		describe("Saving data for human validation", () => {
+			test("Writing Data to files", async () => {
+				let errorThrown;
+				try{
+					if (!fs.existsSync("data/wizard/domestic/" + path))
+						fs.mkdirSync("data/wizard/domestic/" + path);
+					
+					await Writer.WriteDataToFile("data/wizard/domestic/" + path + "/data.txt");
+				}catch(error){
+					errorThrown = error;
+					console.log(error);
+				}
+				expect(errorThrown).toBeUndefined();
+			}, 10000);
+
 			test("Taking Screenshot", async () => {
 				let errorThrown;
 				try{
@@ -406,22 +445,11 @@ function ConfirmPayTests(pickupReady,pickupClosing,pickupPoint,account,path){
 					console.log(error);
 				}
 				expect(errorThrown).toBeUndefined();
-			}, 20000);
-
-			test("Writing Data to files", async () => {
-				let errorThrown;
-				try{
-					await Writer.WriteDataToFile("data/wizard/domestic/" + path + "/data.txt");
-				}catch(error){
-					errorThrown = error;
-					console.log(error);
-				}
-				expect(errorThrown).toBeUndefined();
-			}, 10000);			
+			}, 20000);			
 		});
 	});
 }
-function GenerateManifest(showPricing, address){
+function GenerateManifest(showPricing, address, path){
 	let popup;
 	describe("Generating a manifest", () => {
 		test("Go to Shipments", async () => {
@@ -442,20 +470,26 @@ function GenerateManifest(showPricing, address){
                 return element.childElementCount;
 			});
 			
-			for(var i = 1; i < numItems; i++){
-				let addr = await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(1)", (element) => {
-					return element.innerText();
-				});
-				addr += await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(3)", (element) => {
-					return element.innerText();
-				});
-				addr += await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(3)", (element) => {
-					return element.innerText();
+			var found = true
+			for(var i = 1; i < numItems && found; i++){
+				var addr = await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(1)", (element) => {
+					return element.textContent;
 				});
 				console.log(addr);
-				if(addr == address)
+				addr += " " + await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(2)", (element) => {
+					return element.textContent;
+				});
+				console.log(addr);
+				addr += " " + await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(3)", (element) => {
+					return element.textContent;
+				});
+				console.log(addr);
+				if(addr == address){
 					await page.click("div.pickup-address-list > div:nth-child("+ (i + 1) +") > div.pickup-main-item > div.dicom-checkbox-group.checkbox > label");
+					found = false;
+				}
 			}
+			await page.waitForSelector("div.manifest-action-container > button > span");
 			await page.click("div.manifest-action-container > button > span");
 			pages = await browser.pages();
 			while(pages.length < beforeCount + 1){
@@ -465,5 +499,18 @@ function GenerateManifest(showPricing, address){
 			popup = pages.pop();
 			expect(popup.url()).toMatch(/blob:*/)
 		}, 25000);
+
+		test("Taking Screenshot", async () => {
+			let errorThrown;
+			try{
+				await popup.waitFor(2500);
+				await popup.screenshot({path: "data/wizard/domestic/"+ path +"/manifest.png", type: "png", fullPage: true});
+				await popup.close();
+			}catch(error){
+				errorThrown = error;
+				console.log(error);
+			}
+			expect(errorThrown).toBeUndefined();
+		}, 20000);
 	});
 }
