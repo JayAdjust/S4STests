@@ -1,6 +1,7 @@
 import { _ } from '../src/app/modules/Start/start_controller';
 import * as Wizard from '../src/app/modules/Shipments/wizard_controller';
 import * as Helper from '../src/app/modules/Shipments/shipment_helper';
+import { Manifest } from '../src/app/modules/Manifests/manifests_helper';
 import { SignIn } from '../src/app/modules/Signin/signin_helper';
 import { PAYMENT_TYPES, ACCOUNTS, SERVICE_TYPES, PICKUP_POINTS, PICKUP_TIMES} from '../src/app/modules/Shipments/shipment_details';
 import * as Contact from '../src/app/modules/Contacts/contacts_controller';
@@ -87,6 +88,9 @@ describe("Pre-tests", () => {
     test("Contacts setup", () => {
         expect(Contact.Tests.Setup()).toBe(true);
     }, 1000);
+    test("Manifest Setup", () => {
+        expect(Manifest.Setup()).toBe(true);
+    });
     test("Signing in", async () => {
         expect(await SignIn.onSignIn(USERNAME, PASSWORD)).toBe(true);
     }, 5000);
@@ -101,7 +105,7 @@ describe("Pre-tests", () => {
         expect(pkg).toHaveProperty('height');
         expect(pkg).toHaveProperty('instructions');
     }, 1000);
-    /*test("Getting a list of all contacts", async() => {
+    test.skip("Getting a list of all contacts", async() => {
         try{
             contacts = await Contact.ContactList.GetContactList();
         }catch(error){
@@ -112,8 +116,8 @@ describe("Pre-tests", () => {
             if(element.company == "Dicom Shipping Test")
                 return element;
         });
-    }, 120000);*/
-    /*test("Generating Domestic Shipment Tests", () => {
+    }, 120000);
+    test.skip("Generating Domestic Shipment Tests", () => {
         // DOMESTIC SHIPMENT TESTS
         for(var i = 0; i < NUMBER_OF_DOMESTIC_SHIPMENTS; i++){
             let shipment = RandomizeShipment(i);
@@ -137,23 +141,50 @@ describe("Pre-tests", () => {
         
             shipments.push(shipment);
         }
-    });*/
+    });
 });
 
+/**
+ *  Wizard Shipment Test:
+ * 
+ *      When creating a test there will be:
+ *          A:  A random number of test that would run, adding the data of shipments to an array
+ *              once done the test for (domestic or freight or xborder) check all the from addresses
+ *              of that test block generate a manifest foreach of them.
+ *          
+ *          B:  When generating a shipment (randomly) it will check to see if the from address has already:
+ *              1)  Shipped from the `from` address to the `to` address.
+ *              2)  If an error was found to not recreate that error (e.g. ready time later than closing time)
+ *              3)  Service type between all of `from` in the list's countries to all of `to` in the list's countries
+ *              4)  Same as "3)" but with the account
+ *              5)  Check to see if the us account is being used with two canadian addresses.  
+ * 
+ *          C:
+ * 
+ */
+
 //Domestic parcel
-describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
-    let shipment = {
-        from: "Dicom Shipping Test",
-        to: "Jeremy Corp",
-        payment: PAYMENT_TYPES.prepaid,
-        account: ACCOUNTS.ca_parcel,
-        service: SERVICE_TYPES.ground,
-        ready: PICKUP_TIMES.eight,
-        closing: PICKUP_TIMES.four_thirty,
-        point: PICKUP_POINTS.mailbox
-    };
-    Wizard.Tests.GenerateDomesticTest(shipment);
-}, 60000);
+//for(var i = 0; i < 5; i++){
+    describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
+        let shipment = {
+            from: "Dicom Shipping Test",
+            to: "Jeremy Corp",
+            payment: PAYMENT_TYPES.prepaid,
+            account: ACCOUNTS.ca_parcel,
+            service: SERVICE_TYPES.ground,
+            ready: PICKUP_TIMES.eight,
+            closing: PICKUP_TIMES.four_thirty,
+            point: PICKUP_POINTS.mailbox,
+            path: "test/test_1"
+        };
+        Wizard.Tests.GenerateDomesticTest(shipment);
+        Wizard.Tests.GenerateManifest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", "test");
+    }, 150000);
+//}
+
+
+
+
 
 /*
 // Doesn't work if a machine number is on the account...
@@ -170,4 +201,17 @@ describe("TEST DOMESTIC FREIGHT SHIPMENT", () => {
         point: PICKUP_POINTS.mailbox
     };
     Wizard.Tests.GenerateDomesticTest(shipment);
-});*/
+}, 60000);
+describe("TEST XBORDER SHIPMENT", () => {
+    let shipment = {
+        from: "Dicom Shipping Test",
+        to: "Dicom Eastern Connection - USA",
+        payment: PAYMENT_TYPES.prepaid,
+        account: ACCOUNTS.ca_parcel,
+        service: SERVICE_TYPES.ground,
+        ready: PICKUP_TIMES.eight,
+        closing: PICKUP_TIMES.four_thirty,
+        point: PICKUP_POINTS.mailbox
+    };
+    Wizard.Tests.GenerateXBorderTest(shipment);
+}, 100000);*/

@@ -13,7 +13,7 @@ const additionalServices = ["HFP","NCV","TRD","WKD","DCV","PHS"];
 const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup",
 	"Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
 const purposes = ["COM","PER","DOC","RET"];
-const dutyOptions = ["SHIPPER","RECIPIENT"/*,"THIRD_PARTY"*/];
+const dutyOptions = ["SHIPPER","RECIPIENT","THIRD_PARTY"];
 const broker = "cisuu7xyi000o0yghovn49w6u";
 
 // FIELDS
@@ -247,6 +247,7 @@ export const Wizard = {
 		return packages;
 	},
 	CustomsDetails: async() => {
+		await page.waitFor(2500);
 		let details = {
 			purpose: purposes[Math.floor(Math.random() * purposes.length)],
 			description: faker.random.words(2),
@@ -254,21 +255,23 @@ export const Wizard = {
 			duty: dutyOptions[Math.floor(Math.random() * dutyOptions.length)]
 		};
 
-		await page.click("input[name=productName]");
-		await page.type("input[name=productName]", "ps4");
+		await changeInput("productName", "PS4");
 		await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
 		await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
-
-		await page.waitFor(2000);
-
-		// Purpose
-		await page.select("select[name=purpose]", details.purpose);
 		
-		// Broker
-		await page.select("select[name=broker_id]", details.broker);
-		
-		// If duty applies 
-		await page.select("select[name=bill_to]", details.duty);
+		await page.click("input[name=description]");
+		await page.waitFor(2500);
+		//div.form-group.std.broker-select > select
+		await changeSelect("purpose", details.duty);
+		await changeSelect("broker_id", details.duty);
+		await changeSelect("bill_to", details.duty);
+		if(details.duty == "THIRD_PARTY"){
+			await page.click(".dicon-book");
+			await page.click("div.address-book.customs > section > div:nth-child(1) > div:nth-child(2) > div.contact-entry-note");
+		}
+		await changeInput("description", details.description);
+
+		await page.waitFor(2500);
 
 		return details;
 
@@ -292,7 +295,6 @@ export const Wizard = {
 			reference: "REF" + faker.random.number({min: 10000, max: 9999999})
 		};
 
-		console.log(references);
 		// Change all references 1=EMP, 2=INV, 3=PON, 4=PRE 
 		await changeReference(1,references.employee);
 		await changeReference(2,references.invoice);

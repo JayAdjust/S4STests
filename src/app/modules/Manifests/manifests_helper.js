@@ -6,7 +6,9 @@ let browser;
 export const Manifest = {
     Setup: () => {
 		page = _.GetPage();
-		browser = _.GetBrowser();
+        browser = _.GetBrowser();
+        
+        return page != null && browser != null;
     },
     GoToManifests: async () => {
         // click the shipments tab in the sidebar

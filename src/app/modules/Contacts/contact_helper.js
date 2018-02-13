@@ -1,4 +1,46 @@
 import { _ } from '../Start/start_controller';
+import faker from 'faker';
+
+/**
+ * changeInput and changeSelect are used in this and shipment_helper,
+ * and will possibly be used in others. Maybe create a seperate file for 
+ * all change input, select, etc. functions that can be used.
+ * 
+ * Idea:    create one that only takes name like shipment_helper
+ *          create one that takes in the selector like this
+ * 
+ */
+async function changeInput(name, value, match = null){
+    match = match == null? value : match;
+    let ready = false;
+	while(!ready){
+		await page.click(name);
+		await page.$eval(name,(element) => {
+    	    element.value = "";
+		});
+		await page.type(name,value);
+
+		ready = (await page.$eval(name,(element) => {
+			return element.value;
+		})) == match;
+	}
+}
+async function changeSelect(name, value){
+	let ready = false;
+	while(!ready){
+		await page.select("select[name="+name+"]", value);
+		ready = (await page.$eval("select[name="+name+"]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		})) == value;
+	}
+}
+// FROM: https://stackoverflow.com/questions/8358084/regular-expression-to-reformat-a-us-phone-number-in-javascript
+function formatPhoneNumber(s) {
+    var s2 = (""+s).replace(/\D/g, '');
+    var m = s2.match(/^(\d{3})(\d{3})(\d{4})$/);
+    return (!m) ? null : "(" + m[1] + ") " + m[2] + "-" + m[3];
+  }
 
 let page;
 let browser;
@@ -23,85 +65,25 @@ export const Contact = {
         await page.waitFor(2000);
 
         // enter the customer ID
-        await ClearInputBox("input[name=customer_id]");
-        if (customerID !== "") {
-            await page.focus("input[name=customer_id]");
-            await page.waitFor(5);
-            await page.type("input[name=customer_id]", customerID, { delay: 50 });
-        }
-
+        await changeInput("input[name=customer_id]", customerID);
         // enter the customer's billing account
-        await ClearInputBox("input[name=billing_account]");
-        if (billingAccount !== "") {
-            await page.focus("input[name=billing_account]");
-            await page.waitFor(5);
-            await page.type("input[name=billing_account]", customerID);
-        }
+
+        await changeInput("input[name=billing_account]", billingAccount);
 
         // enter the company name
-        await ClearInputBox("input[name=company_name]");
-        await page.focus("input[name=company_name]");
-        await page.waitFor(5);
-        await page.type("input[name=company_name]", company);
-
-        /* IDK?
-        if (!wantsSameCompanyName) {
-            var num = 0;
-            do {
-                await page.focus("input[name=company_name]");
-                await page.waitFor(20);
-
-                await page.evaluate(function() {
-                    document.querySelector('input[name=company_name]').value = "";
-                });
-                await page.focus("input[name=customer_id]");
-                await page.waitFor(100);
-
-                if (num === 0) {
-                    await page.type("input[name=company_name]", company);
-                } else {
-                    await page.type("input[name=company_name]", company + " (" + num + ")");
-                }
-                await page.waitFor(1500);
-
-                var autoCompleteCompanyExists = !!(await page.$(".company-address-list div:nth-child(1)"));
-                num++;
-            } while (autoCompleteCompanyExists)
-        } else {
-            // just enter the company name regularly
-            await page.focus("input[name=company_name]");
-            await page.waitFor(20);
-            await page.type("input[name=company_name]", company);
-            await page.waitFor(100);
-        }
-        */
-
-        // remove the autocomplete window when entering a company name
-        // simply focus on something else will remove it
-        // can cause bugs otherwise
-        // removed
-        //await page.waitFor(100);
-        //await page.focus("input[name=customer_id]");
-        //await page.waitFor(100);
+        await changeInput("input[name=company_name]", faker.company.companyName());
 
         // enter the country
-        await ClearInputBox("select[name=country]");
-        await page.focus("select[name=country]");
-        await page.waitFor(5);
-        await page.select("select[name=country]", country);
+        await changeSelect("country", country);
 
         // enter the postal code / zip code
-        await ClearInputBox("input[name=postal_code]");
-        await page.focus("input[name=postal_code]");
-        await page.waitFor(300); // postal code/zip code needs more of a delay, bugs can/will occur otherwise
-        await page.focus("input[name=postal_code]"); // needed again for some reason
-        await page.type("input[name=postal_code]", postalCode);
-
+        var match = postalCode.length == 6? postalCode.replace(/\W/g,'').replace(/(...)/,'$1 ') : null;
+        await changeInput("input[name=postal_code]", postalCode, match);
+        
         // enter main street address
-        await ClearInputBox(".address-field.form-group.std input");
-        await page.focus(".address-field.form-group.std input");
-        await page.waitFor(5);
-        await page.type(".address-field.form-group.std input", address);
+        var exists = !!(await page.$("div.address-field.form-group.std.has-error > input"));
+        exists? await changeInput("div.address-field.form-group.std.has-error > input", address) : 
+                await changeInput("div.address-field.form-group.std > input", address);
 
         // wait for the auto-complete window to show
         // assume that if no popup window shows after 3 seconds, it's an invalid address
@@ -119,64 +101,26 @@ export const Contact = {
                 await page.click(".auto-address-item div:nth-child(1)");
             } else {
                 // when the auto complete window didn't show up, type in the city manually
-                await page.waitFor(3000);
-                await page.focus("input[name=city]");
-                await page.waitFor(300);
-                await page.waitFor(20);
-                await page.type("input[name=city]", city);
-                await page.waitFor(3000);
-
-                // removed - enter a valid postal code and it fills this in for you
-                //await page.focus("input[name=state]");
-                //await page.waitFor(20);
-                //await page.type("input[name=state]", province);
+                await changeInput("input[name=city]", city);
             }
 
             // enter street address line #2
-            await ClearInputBox("input[name=street_line_2]");
-            if (addressLine2 !== "") {
-                await page.focus("input[name=street_line_2]");
-                await page.waitFor(5);
-                await page.type("input[name=street_line_2]", addressLine2);
-            }
+            await changeInput("input[name=street_line_2]", addressLine2);
 
             // enter "Attention To"
-            await ClearInputBox("input[name=person_full_name]");
-            await page.focus("input[name=person_full_name]");
-            await page.waitFor(5);
-            await page.type("input[name=person_full_name]", attentionTo);
+            await changeInput("input[name=person_full_name]", attentionTo);
 
             // enter phone
-            await ClearInputBox("input[name=phone]");
-            if (phone !== "") {
-                await page.focus("input[name=phone]");
-                await page.waitFor(5);
-                await page.type("input[name=phone]", phone);
-            }
+            await changeInput("input[name=phone]", phone, formatPhoneNumber(phone));
 
             // enter phone extension
-            await ClearInputBox("input[name=phone_ext]");
-            if (phoneExt !== "") {
-                await page.focus("input[name=phone_ext]");
-                await page.waitFor(5);
-                await page.type("input[name=phone_ext]", phoneExt);
-            }
+            await changeInput("input[name=phone_ext]", phoneExt);
 
             // enter email
-            await ClearInputBox("input[name=email]");
-            if (email !== "") {
-                await page.focus("input[name=email]");
-                await page.waitFor(5);
-                await page.type("input[name=email]", email);
-            }
+            await changeInput("input[name=email]", email);
 
             // enter mobile phone
-            await ClearInputBox("input[name=mobile_phone]");
-            if (mobilePhone !== "") {
-                await page.focus("input[name=mobile_phone]");
-                await page.waitFor(5);
-                await page.type("input[name=mobile_phone]", mobilePhone);
-            }
+            await changeInput("input[name=mobile_phone]", mobilePhone, formatPhoneNumber(mobilePhone));
 
             // click the "Add Contact" button
             await page.waitFor(100);
@@ -188,13 +132,4 @@ export const Contact = {
             return !textboxErrorExists;
         }
     }
-}
-
-async function ClearInputBox(e) {
-    //await page.evaluate(function(e) {
-        //document.querySelector(e).value = '';
-    //}, e);
-    await page.$eval(e, input => {
-        input.value = "";
-    });
 }
