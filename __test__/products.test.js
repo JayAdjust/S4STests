@@ -26,6 +26,13 @@ describe("Products", () => {
      *  Pre-Test #1: Actually getting to the products page
      *******************************************************/
     test("Actually getting to the products page", async () => {
-        expect(await Products.Tests.GoToProducts()).toBe(false); // TODO FIX
+        expect(await Products.Tests.GoToProducts()).toBe(true);
+    }, 16000);
+
+    /*******************************************************
+     * Test #1: Create a product
+     *******************************************************/
+    test("Create Product", async () => {
+        expect(await Products.Tests.T1()).toBe(true);
     }, 16000);
 });
