@@ -1,76 +1,24 @@
-import { _ } from '../Start/start_controller';
-import { Wizard, Writer } from './shipment_helper';
-import { Manifest } from '../Manifests/manifests_helper';
 import faker from "faker";
 import fs from 'fs';
+import { Wizard, Writer } from './shipment_helper';
+import { Helper } from './shipment_details'; 
+import { Manifest } from '../Manifests/manifests_helper';
+import * as _ from '../Puppeteer/page_helper';
 
-const PAYMENT_TYPES = {
-	prepaid: "PREPAID",
-	collect: "COLLECT",
-	third_party: "THIRD_PARTY"
-};
-const ACCOUNTS = {
-	ca_parcel: "300030",
-	us_parcel: "41562",
-	ca_freight: "8292093"
-};
-const SERVICE_TYPES = {
-	air: "AIR",
-	ground: "GRD"
-};
-const PICKUP_POINTS = {
-	office: "BU",
-	ground_floor: "RC",
-	mail_room: "MR",
-	other: "OT",
-	home: "PH",
-	basement: "SS",
-	mailbox: "MB"
-};
-const PICKUP_TIMES = {
-	seven_thirty: "7:30",
-	eight: "8:00",
-	eight_thirty: "8:30",
-	nine: "9:00",
-	nine_thirty: "9:30",
-	ten: "10:00",
-	ten_thirty: "10:30",
-	eleven: "11:00",
-	eleven_thirty: "11:30",
-	twelve: "12:00",
-	twelve_thirty: "12:30",
-	one: "13:00",
-	one_thirty: "13:30",
-	two: "14:00",
-	two_thirty: "14:30",
-	three: "15:00",
-	three_thirty: "15:30",
-	four: "16:00",
-	four_thirty: "16:30",
-	five: "17:00",
-	five_thirty: "17:30",
-	six: "18:00",
-	six_thirty: "18:30",
-	seven: "19:00"
-}
-
-const DOMESTIC_PATH = "images/wizard/domestic/";
-const XBORDER_PATH = "images/wizard/xborder/";
-
-let page;
-let browser;
-let anyErrors = false;
+// Puppeteer page & browser
+let page,browser;
+// Data to keep for validation
+let currentWeight = 0,currentPieces = 0,currentInfo = null;
 
 export const Tests = {
-	Setup: () => {
-		page = _.GetPage();
-		browser = _.GetBrowser();
-		Wizard.Setup();
+	Setup: (_page,_browser) => {
+		page = _page;
+		browser = _browser;
 
-		return page != null && browser != null;
+		return (page != null && browser != null && _.Setup(_page, _browser) && Wizard.Setup(_page, _browser));
 	},
 	GenerateDomesticTest: (info) => {
-		anyErrors = false;
+		currentInfo = info;
 		DomesticShipmentTest(
 			info.from,
 			info.to,
@@ -83,6 +31,7 @@ export const Tests = {
 			info.path
 		);
 	},
+	// SHOULDNT BE HERE
 	GenerateManifest: (showPricing, address, path) => {
 		GenerateManifest(showPricing, address, path);
 	},
@@ -100,9 +49,6 @@ export const Tests = {
 			info.path
 		);
 
-	},
-	error: () => {
-		anyErrors = true;
 	}
 }
 /**
@@ -124,7 +70,7 @@ export const Tests = {
  */
 function DomesticShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint, path){
 	let account = _account;
-	
+	currentWeight = 0, currentPieces = 0;
 	ChangeToWizardTests();
 	AddressDetailsTests(_from,_to,_paymentType,_account);
 	PackageDetailsTests(_service, false);
@@ -197,16 +143,16 @@ function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pick
   */
 function AddressDetailsTests(from, to, paymentType, account){
 	let onPage = true;
-	describe("Address Details", () => {
-		// Check to see if you are on the page
-		describe("Address Details Pre-Tests", () => {
-			test("Check to see if on address Details Page", async () => {
-				let element = await page.$(".split-layout.wizard-address");
-				onPage = element != null;
-				expect(element).toBeDefined();
-			});
-		});
 
+	// Check to see if you are on the page
+	describe("Address Details Pre-Tests", () => {
+		test("Check to see if on address Details Page", async () => {
+			let element = await page.$(".split-layout.wizard-address");
+			onPage = element != null;
+			expect(element).toBeDefined();
+		});
+	});
+	describe("Address Details", () => {
 		if(onPage){
 			// Generate the Addres details (Change all details needed)
 			test("Generating Address Details", async () => {
@@ -260,22 +206,28 @@ async function PackageDetailsValidations(service, packageCount){
 function PackageDetailsTests(service, isXBorder){
 	let onPage = true;
 	let packages;
+
+	// Check to see if you are on the page
+	describe("Package Details Pre-Tests", () => {
+		test("Check to see if on Package Details Page", async () => {
+			let element = await page.$(".packageForm");
+			onPage = element != null;
+			expect(element).toBeDefined();
+		});
+	});
+
 	// PACKAGE DETAILS
 	describe("Package Details", () => {
-		// Check to see if you are on the page
-		describe("Package Details Pre-Tests", () => {
-			test("Check to see if on Package Details Page", async () => {
-				let element = await page.$("");
-				onPage = element != null;
-				expect(element).toBeDefined();
-			});
-		});
-
 		if(onPage){
 			let packageCount = Math.floor(Math.random() * 3) + 1;
 			test("Generating Package Details", async () => {
 				packages = await Wizard.PackageDetails(service, packageCount);
 				expect(await PackageDetailsValidations(service, packageCount)).toBe(true);
+
+				packages.forEach((element) => {
+					currentPieces += element.quantity;
+					currentWeight += element.quantity * element.weight;
+				});
 			}, 20000);
 
 			describe("Validations", () => {
@@ -379,76 +331,138 @@ async function ConfirmPayValidations(pickupReady,pickupClosing,pickupPoint,confi
 
 	return res == Math.pow(2,count) - 1;
 }
+
+// STUFF IN HERE CAN BE IN ANOTHER FILE!!
+async function CheckifShipmentwasCreated(){
+	let res = true, data, count = 0;
+	// <THIS IS GO TO MANIFEST>
+	await page.click("div.side-bar > div:nth-child(2) > a > div.icon > i");
+	// </THIS IS GO TO MANIFEST>
+	if(!!(await page.$("div.shipment-list-wrapper > div > span:nth-child(1) > div")))
+		return false;
+	
+	try{
+		await page.waitForSelector("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", {timeout: 2500});
+	}catch(e){return false;}
+
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", (element) => {
+		return element.textContent;
+	}));
+	res |= data == currentWeight? 1 << (++count - 1):0;
+
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.packages", (element) => {
+		return element.textContent;
+	}));
+	res |= data == currentPieces? 1 << (++count - 1):0;
+
+	var today = new Date().toJSON().slice(0,10).replace(/-/g,'/').split('/');
+	today = today[1] + "/" +  today[2] + "/" + today[0];
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.date", (element) => {
+		return element.textContent;
+	}));
+	res |= data == today? 1 << (++count - 1):0;
+
+	var service = Helper.GetServiceNameFromAccount(currentInfo.account);
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.service > span > span", (element) => {
+		return element.textContent;
+	}));
+	res |= data == service? 1 << (++count - 1):0;
+
+	return (res == (Math.pow(2,count) - 1));
+}
 /**
  * ConfirmPayTests
  */
 function ConfirmPayTests(pickupReady,pickupClosing,pickupPoint,account,path){
+	let onPage = true;
 	let confirmInfo;
 	let popup;
-	describe("Confirm and pay", () => {
-		if(anyErrors){
-			//exit();
-		}
 
-		test("Generating Confirm and Pay Details", async () => {
-			confirmInfo = await Wizard.ConfirmAndPay(pickupReady, pickupClosing, pickupPoint, account);
-			expect(confirmInfo).toHaveProperty('references');
-			expect(confirmInfo).toHaveProperty('services');
-			expect(await ConfirmPayValidations(pickupReady, pickupClosing, pickupPoint,confirmInfo)).toBe(true);
-		}, 20000);
-
-		// VALIDATIONS
-		describe("Validations", () => {
-			test("Able to create the final shipment", async () => {
-				let pages = await browser.pages();
-				let beforeCount = pages.length;
-				let ready = false;
-				while(!ready){
-					ready = await page.$eval(".final-ship", (element) => {
-						return element.innerText == "Ship";
-					});
-				}
-				await page.click(".final-ship", {waitUntil: 'networkidle'});
-				pages = await browser.pages();
-				while(pages.length < beforeCount + 1){
-					await page.waitFor(1000);
-					pages = await browser.pages();
-				}
-				popup = pages.pop();
-				expect(popup.url()).toMatch(/blob:*/)
-			}, 20000);
-		});
-
-		describe("Saving data for human validation", () => {
-			test("Writing Data to files", async () => {
-				let errorThrown;
-				try{
-					if (!fs.existsSync("data/wizard/domestic/" + path))
-						fs.mkdirSync("data/wizard/domestic/" + path);
-					
-					await Writer.WriteDataToFile("data/wizard/domestic/" + path + "/data.txt");
-				}catch(error){
-					errorThrown = error;
-					console.log(error);
-				}
-				expect(errorThrown).toBeUndefined();
-			}, 10000);
-
-			test("Taking Screenshot", async () => {
-				let errorThrown;
-				try{
-					await popup.waitFor(2500);
-					await popup.screenshot({path: "data/wizard/domestic/"+ path +"/label.png", type: "png", fullPage: true});
-					await popup.close();
-				}catch(error){
-					errorThrown = error;
-					console.log(error);
-				}
-				expect(errorThrown).toBeUndefined();
-			}, 20000);			
+	// Check to see if you are on the page
+	describe("Confirm and Pay Pre-Tests", () => {
+		test("Check to see if on Confirm and Pay Page", async () => {
+			let element = await page.$(".confirm-status-banner");
+			onPage = element != null;
+			expect(element).toBeDefined();
 		});
 	});
+
+	describe("Confirm and pay", () => {
+		if(onPage){
+			test("Generating Confirm and Pay Details", async () => {
+				confirmInfo = await Wizard.ConfirmAndPay(pickupReady, pickupClosing, pickupPoint, account);
+				expect(confirmInfo).toHaveProperty('references');
+				expect(confirmInfo).toHaveProperty('services');
+				expect(await ConfirmPayValidations(pickupReady, pickupClosing, pickupPoint,confirmInfo)).toBe(true);
+			}, 20000);
+
+			// VALIDATIONS
+			describe("Validations", () => {
+				test("Able to create the final shipment", async () => {
+					let pages = await browser.pages();
+					let beforeCount = pages.length;
+					let ready = false;
+					while(!ready){
+						ready = await page.$eval(".final-ship", (element) => {
+							return element.innerText == "Ship";
+						});
+					}
+					await page.click(".final-ship", {waitUntil: 'networkidle'});
+					pages = await browser.pages();
+					while(pages.length < beforeCount + 1){
+						await page.waitFor(1000);
+						pages = await browser.pages();
+					}
+					popup = pages.pop();
+					expect(popup.url()).toMatch(/blob:*/);
+				}, 20000);
+				test("Check to see if shipment was created", async () => {
+					expect(await CheckifShipmentwasCreated()).toBe(true);
+				}, 7500);
+			});
+
+			describe("Saving data for human validation", () => {
+				test("Writing Data to files", async () => {
+					let errorThrown;
+					try{
+						if (!fs.existsSync(path))
+							fs.mkdirSync(path);
+						await Writer.WriteDataToFile(path + "data.txt");
+
+
+						await popup.waitFor(5000);
+						const html = await popup.evaluate('new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML');
+						await Writer.WritetoFile(path + "html.txt", html);
+					}catch(error){
+						errorThrown = error;
+						console.log(error);
+					}
+					expect(errorThrown).toBeUndefined();
+				}, 10000);
+
+				test("Taking Screenshot", async () => {
+					let errorThrown;
+					try{
+						if (!fs.existsSync(path))
+							fs.mkdirSync(path);
+						await popup.waitFor(2500);
+						await popup.screenshot({path: path + "label.png", type: "png", fullPage: true});
+						await popup.close();
+					}catch(error){
+						errorThrown = error;
+						console.log(error);
+					}
+					expect(errorThrown).toBeUndefined();
+				}, 20000);	
+			});
+		}
+	});
 }
+
+
+
+
+// SHOULD NOT BE HERE
 function GenerateManifest(showPricing, address, path){
 	let popup;
 	describe("Generating a manifest", () => {
@@ -463,29 +477,32 @@ function GenerateManifest(showPricing, address, path){
 			let beforeCount = pages.length;
 			await page.click("div.shipment-table-filters > div.shipment-select-filters > button:nth-child(3)");
 
-			if(showPricing)
+			if(showPricing){
+				await page.waitForSelector("div.pickup-options-container > div.dicom-checkbox-group.checkbox > label");
 				await page.click("div.pickup-options-container > div.dicom-checkbox-group.checkbox > label");
+			}
 
 			let numItems = await page.$eval("div.pickup-address-list", (element) => {
                 return element.childElementCount;
 			});
-			
-			var found = true
+			var found = true;
 			for(var i = 1; i < numItems && found; i++){
 				var addr = await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(1)", (element) => {
 					return element.textContent;
 				});
-				console.log(addr);
+				
 				addr += " " + await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(2)", (element) => {
 					return element.textContent;
 				});
-				console.log(addr);
+				
 				addr += " " + await page.$eval("div.pickup-address-list > div:nth-child(" + (i + 1) + ") > div.pickup-main-item > div.address-details > div:nth-child(3)", (element) => {
 					return element.textContent;
 				});
-				console.log(addr);
+
 				if(addr == address){
+					await page.waitForSelector("div.pickup-address-list > div:nth-child("+ (i + 1) +") > div.pickup-main-item > div.dicom-checkbox-group.checkbox > label");
 					await page.click("div.pickup-address-list > div:nth-child("+ (i + 1) +") > div.pickup-main-item > div.dicom-checkbox-group.checkbox > label");
+					await page.waitFor(1000);
 					found = false;
 				}
 			}
@@ -503,8 +520,11 @@ function GenerateManifest(showPricing, address, path){
 		test("Taking Screenshot", async () => {
 			let errorThrown;
 			try{
+				if (!fs.existsSync(path))
+					fs.mkdirSync(path);
+
 				await popup.waitFor(2500);
-				await popup.screenshot({path: "data/wizard/domestic/"+ path +"/manifest.png", type: "png", fullPage: true});
+				await popup.screenshot({path: path +"/manifest.png", type: "png", fullPage: true});
 				await popup.close();
 			}catch(error){
 				errorThrown = error;

@@ -1,5 +1,15 @@
 import faker from "faker";
 
+export const Helper = {
+	GetServiceNameFromAccount: (account) => {
+		switch(account){
+			case ACCOUNTS.ca_parcel:	return "Dicom Parcel Canada";
+			case ACCOUNTS.ca_freight:	return "Dicom LTL Canada";
+			case ACCOUNTS.us_parcel:	return "Dicom Parcel - US";
+			default: 					return null;
+		}
+	}
+};
 export const PAYMENT_TYPES = {
 	prepaid: "PREPAID",
 	collect: "COLLECT",

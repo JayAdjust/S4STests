@@ -1,0 +1,16 @@
+=========================Packages=========================
+Package #1
+	Type: [object Object]
+	Quantity: 3
+	Weight: 6
+	Length: 8
+	Width: 19
+	Height: 5
+	Instructions: Home expedite drive
+=========================References=========================
+	Employee Number: 1786523
+	Invoice Number: INV6938796
+	Purchase Order number: ORD8957224
+	Pre-Sold Order Reference #: REF6501345
+=========================Services=========================
+	PHS

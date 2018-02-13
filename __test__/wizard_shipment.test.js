@@ -38,10 +38,6 @@ afterAll(() => {
 
 // Before and After each test
 beforeEach(() => {
-    if(res != Math.pow(2, count)-1){
-        //console.log(res.toString(2));     
-        Wizard.Tests.error();
-    }
     count++;
 });
 afterEach(() => {
@@ -59,7 +55,8 @@ jasmine.getEnv().addReporter(reporter);
 const NUMBER_OF_DOMESTIC_SHIPMENTS = 100;
 const USERNAME = "Jeremy@dicom.com";
 const PASSWORD = "test123";
-
+const DOMESTIC_PATH = "data/wizard/domestic/";
+const XBORDER_PATH = "data/wizard/xborder/";
 
 let page;
 let browser;
@@ -83,7 +80,7 @@ describe("Pre-tests", () => {
     }, 1000);
 
     test("Wizard setup", () => {
-        expect(Wizard.Tests.Setup()).toBe(true);
+        expect(Wizard.Tests.Setup(page, browser)).toBe(true);
     }, 1000);
     test("Contacts setup", () => {
         expect(Contact.Tests.Setup()).toBe(true);
@@ -175,10 +172,10 @@ describe("Pre-tests", () => {
             ready: PICKUP_TIMES.eight,
             closing: PICKUP_TIMES.four_thirty,
             point: PICKUP_POINTS.mailbox,
-            path: "test/test_1"
+            path: (DOMESTIC_PATH + "test/")
         };
         Wizard.Tests.GenerateDomesticTest(shipment);
-        Wizard.Tests.GenerateManifest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", "test");
+        Wizard.Tests.GenerateManifest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", (DOMESTIC_PATH + "test/"));
     }, 150000);
 //}
 

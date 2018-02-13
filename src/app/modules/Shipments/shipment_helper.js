@@ -1,6 +1,7 @@
-import { _ } from '../Start/start_controller';
 import faker from 'faker';
 import fs, { read } from 'fs';
+import * as _ from '../Puppeteer/page_helper';
+import * as Selectors from '../Puppeteer/page_selectors';
 
 
 // TODO: Create a module for all puppeteer repetitive uses
@@ -26,61 +27,6 @@ let currentAccount;
 /**
  * <Private Functions>
  */
-async function GetFromContact(from){
-	await page.waitFor(100);
-	await page.click(".shipment-container.from input[name=query]");
-	await page.type(".shipment-container.from input[name=query]", from);
-	await page.waitForSelector(".contact-entry-item", {timeout: 10000, visible: true});
-	await page.click(".contact-entry-item");
-	await page.waitForSelector(".address-bubble.active", {timeout: 10000, visible: true});
-}
-async function GetToContact(to){
-	await page.waitFor(100);
-	await page.click(".shipment-container.to input[name=query]");
-	await page.type(".shipment-container.to input[name=query]", to);
-	await page.waitForSelector(".contact-entry-item", {timeout: 10000, visible: true});
-	await page.click(".contact-entry-item");
-	await page.waitForSelector(".address-bubble.orange-active", {timeout: 10000, visible: true});
-}
-async function changeSelect(name, value){
-	let ready = false;
-	while(!ready){
-		await page.select("select[name="+name+"]", value);
-		ready = (await page.$eval("select[name="+name+"]", (element) => {
-			var selected = element.options[element.selectedIndex];
-			return selected.getAttribute("value");
-		})) == value;
-	}
-}
-async function changeInput(name, value){
-	let ready = false;
-	while(!ready){
-		await page.click("input[name="+name+"]");
-		await page.$eval("input[name="+name+"]",(element) => {
-    	    element.value = "";
-		});
-		await page.type("input[name="+name+"]",value);
-
-		ready = (await page.$eval("input[name="+name+"]",(element) => {
-			return element.value;
-		})) == value;
-	}
-}
-async function changeReference(number, value){
-	// Number: 1=EMP, 2=INV, 3=PON, 4=PRE 
-	let ready = false;
-	while(!ready){
-		await page.click(".kv-inputs div:nth-child("+ number +") input:nth-child(2)");
-		await page.$eval(".kv-inputs div:nth-child("+ number +") input:nth-child(2)", (element) => {
-			element.value = "";
-		});
-
-		await page.type('.kv-inputs div:nth-child('+ number +') input:nth-child(2)', value);
-		ready = (await page.$eval(".kv-inputs div:nth-child("+ number +") input:nth-child(2)", (element) => {
-			return element.value;
-		})) == value;
-	}
-}
 async function ChangeMeasurement(measurement){
 	if(measurement == "metric")
 		await page.click(".control-toggle.weight span:nth-child(1) span:nth-child(2)");
@@ -171,11 +117,11 @@ export const PackageDetails = {
 };
 
 export const Wizard = {
-	Setup: () => {
-		page = _.GetPage();
-		browser = _.GetBrowser();
+	Setup: (_page, _browser) => {
+		page = _page;
+		browser = _browser;
 
-		return page != null && browser != null;
+		return (page != null && browser != null);
 	},
 	GetCurrentPackages: () => {
 		return currentpkgs;
@@ -193,14 +139,14 @@ export const Wizard = {
 	},
 	AddressDetails: async(from, to, type, account) => {
 		// Get the from contact
-		await GetFromContact(from);
+		await _.Wizard.GetFromContact(from);
 		// Get the to contact
-		await GetToContact(to);
+		await _.Wizard.GetToContact(to);
 		// Chnage the payment type
-		await changeSelect("payment_type", type);
+		await _.changeSelect.withName("payment_type", type);
 		// Change the billing account
-		await changeSelect("billing_account", account)
-		
+		await _.changeSelect.withName("billing_account", account);
+
 		currentAccount = account;
 	},
 	PackageDetails: async(service, packageCount) => {
@@ -212,31 +158,32 @@ export const Wizard = {
 			// Generate a random package
 			let _package = PackageDetails.PackageRandomizer();
 			// Change the type of package
-			await changeSelect("type", currentAccount != "8292093"? _package.type.parcel : _package.type.freight);
+			await _.changeSelect.withName("type", currentAccount != "8292093"? _package.type.parcel : _package.type.freight);
+			
 			// Change the quantity to the package
 			//await ChangePackageQuantity(_package.quantity.toString());
-			await changeInput("quantity", _package.quantity.toString());
+			await _.changeInput.withName("quantity", _package.quantity.toString());
 
 			// Check to see if the package is an Envelope
 			if(currentAccount != "8292093" && _package.type.parcel != "EV"){
 				// Measurement disabled for now
 				//await ChangeMeasurement(_package.measurement);await page.waitFor(1500);
-				await changeInput("weight", _package.weight.toString());
-				await changeInput("length", _package.length.toString());
-				await changeInput("width", _package.width.toString());
-				await changeInput("height", _package.height.toString());
+				await _.changeInput.withName("weight", _package.weight.toString());
+				await _.changeInput.withName("length", _package.length.toString());
+				await _.changeInput.withName("width", _package.width.toString());
+				await _.changeInput.withName("height", _package.height.toString());
 			}
 
 			// Change the instructions
-			await changeInput("instructions", _package.instructions);
+			await _.changeInput.withName("instructions", _package.instructions);
 
 			// Change the service type
-			await changeSelect("service_type", service);
+			await _.changeSelect.withName("service_type", service);
 
 			// Change the pickup date
 			let currentDate = new Date();
 			currentDate.setDate(currentDate.getDate() + 1);
-			await changeSelect("pickup_date", currentDate.toISOString().split('T')[0]);
+			await _.changeSelect.withName("pickup_date", currentDate.toISOString().split('T')[0]);
 
 			// Click on add package
 			await page.click(".btn.btn-md.btn-secondary.inline");
@@ -255,21 +202,21 @@ export const Wizard = {
 			duty: dutyOptions[Math.floor(Math.random() * dutyOptions.length)]
 		};
 
-		await changeInput("productName", "PS4");
+		await _.changeInput.withName("productName", "PS4");
 		await page.waitForSelector(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a", {timeout: 10000, visible: true});
 		await page.click(".dropdown-menu.bootstrap-typeahead-menu.dropdown-menu-justify a");
 		
 		await page.click("input[name=description]");
 		await page.waitFor(2500);
 		//div.form-group.std.broker-select > select
-		await changeSelect("purpose", details.duty);
-		await changeSelect("broker_id", details.duty);
-		await changeSelect("bill_to", details.duty);
+		await _.changeSelect.withName("purpose", details.duty);
+		await _.changeSelect.withName("broker_id", details.duty);
+		await _.changeSelect.withName("bill_to", details.duty);
 		if(details.duty == "THIRD_PARTY"){
 			await page.click(".dicon-book");
 			await page.click("div.address-book.customs > section > div:nth-child(1) > div:nth-child(2) > div.contact-entry-note");
 		}
-		await changeInput("description", details.description);
+		await _.changeInput.withName("description", details.description);
 
 		await page.waitFor(2500);
 
@@ -280,11 +227,11 @@ export const Wizard = {
 		await page.waitFor(2500);
 
 		// Change the pickupPoint
-		await changeSelect("pickup_point", pickupPoint);
+		await _.changeSelect.withName("pickup_point", pickupPoint);
 		// Change Pickup ready by
-		await changeSelect("pickup_ready_by", readyBy);
+		await _.changeSelect.withName("pickup_ready_by", readyBy);
 		// Change pickup closing time
-		await changeSelect("pickup_closing_time", closingTime);
+		await _.changeSelect.withName("pickup_closing_time", closingTime);
 
 		// Generate random references and save them in order to 
 		// send them back for validation on printing
@@ -296,10 +243,10 @@ export const Wizard = {
 		};
 
 		// Change all references 1=EMP, 2=INV, 3=PON, 4=PRE 
-		await changeReference(1,references.employee);
-		await changeReference(2,references.invoice);
-		await changeReference(3,references.order);
-		await changeReference(4,references.reference);
+		await _.changeInput.withSelector(Selectors.Wizard.inputs.employee, references.employee);
+		await _.changeInput.withSelector(Selectors.Wizard.inputs.invoice, references.invoice);
+		await _.changeInput.withSelector(Selectors.Wizard.inputs.purchase_order, references.order);
+		await _.changeInput.withSelector(Selectors.Wizard.inputs.pre_sold_order, references.reference);
 
 		let selected = await GenerateAdditionalServices(account);
 
@@ -323,9 +270,11 @@ export const Quick = {
 		await page.click(".sub-routes div:nth-child(3)");
 	},
 
-	Setup: () => {
-		page = _.GetPage();
-		browser = _.GetBrowser();
+	Setup: (_page, _browser) => {
+		page = _page;
+		browser = _browser;
+
+		return (page != null && browser != null);
 	}
 }
 
@@ -349,7 +298,7 @@ export const Writer = {
 			// PACKAGES
 			WriteTitle("Packages", stream);
 			for(var i = 0; i < packages.length; i++){
-				stream.write("Package #" + i + "\n");
+				stream.write("Package #" + (i+1) + "\n");
 				stream.write("\tType: " + packages[i].type + "\n");
 				stream.write("\tQuantity: " + packages[i].quantity + "\n");
 	
@@ -375,6 +324,13 @@ export const Writer = {
 			services.forEach((service) => {
 				stream.write("\t" + service + "\n");
 			});
+		});
+	},
+	WritetoFile: async (path, data) => {
+		let stream = fs.createWriteStream(path);
+		
+		stream.once('open', () => {
+			stream.write(data);
 		});
 	}
 }
