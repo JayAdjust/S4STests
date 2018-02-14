@@ -2,7 +2,7 @@ import faker from "faker";
 import fs from 'fs';
 import { Wizard, Writer } from './helper';
 import { Helper } from '../Shipments/shipment_details'; 
-import { Manifest } from '../Manifests/manifests_helper';
+import { Manifest } from '../Manifests/helper';
 import { Selectors } from './selectors';
 import * as _ from '../Puppeteer/page_helper';
 
@@ -45,7 +45,7 @@ export const GenerateXBorderTest = (info) => {
 		info.path
 	);
 }
-export const GenerateManifest = (showPricing, address, path) => {
+export const GenerateManifestTest = (showPricing, address, path) => {
 	GenerateManifest(showPricing, address, path);
 }
 
@@ -83,7 +83,7 @@ function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pick
  * ChangeToWizardTests tests to see if the Go to Wizard works
  */
  function ChangeToWizardTests(){
-	test("Going to wizard", async () => {
+	let x = test("Going to wizard", async () => {
 		if(await page.$(Selectors.divs.wizard_container) == null){
 			await Wizard.GoToWizard();
 			let element = await page.$(Selectors.divs.wizard_container);

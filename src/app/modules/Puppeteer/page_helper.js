@@ -1,5 +1,5 @@
-import * as Contact_Selectors from '../Contacts/contacts_selectors';
-import * as Wizard_Selectors from '../Wizard/wizard_selectors';
+import * as Contact_Selectors from '../Contacts/selectors';
+import * as Wizard_Selectors from '../Wizard/selectors';
 
 const Selectors = {
     Wizard: Wizard_Selectors.Selectors,

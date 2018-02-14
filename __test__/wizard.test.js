@@ -161,23 +161,23 @@ describe("Pre-tests", () => {
  */
 
 //Domestic parcel
+describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
 //for(var i = 0; i < 5; i++){
-    describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
-        let shipment = {
-            from: "Dicom Shipping Test",
-            to: "Jeremy Corp",
-            payment: PAYMENT_TYPES.prepaid,
-            account: ACCOUNTS.ca_parcel,
-            service: SERVICE_TYPES.ground,
-            ready: PICKUP_TIMES.eight,
-            closing: PICKUP_TIMES.four_thirty,
-            point: PICKUP_POINTS.mailbox,
-            path: (DOMESTIC_PATH + "test/")
-        };
-        Wizard.GenerateDomesticTest(shipment);
-        Wizard.GenerateManifest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", (DOMESTIC_PATH + "test/"));
-    }, 150000);
+    let shipment = {
+        from: "Dicom Shipping Test",
+        to: "Jeremy Corp",
+        payment: PAYMENT_TYPES.prepaid,
+        account: ACCOUNTS.ca_parcel,
+        service: SERVICE_TYPES.ground,
+        ready: PICKUP_TIMES.eight,
+        closing: PICKUP_TIMES.four_thirty,
+        point: PICKUP_POINTS.mailbox,
+        path: (DOMESTIC_PATH + "test/")
+    };
+    Wizard.GenerateDomesticTest(shipment);
+    Wizard.GenerateManifestTest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", (DOMESTIC_PATH + "test/"));
 //}
+}, 150000);
 
 
 
