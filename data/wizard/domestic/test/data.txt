@@ -1,16 +1,14 @@
 =========================Packages=========================
 Package #1
-	Type: [object Object]
-	Quantity: 3
-	Weight: 6
-	Length: 8
-	Width: 19
-	Height: 5
-	Instructions: Home expedite drive
+EV	Quantity: 3
+	Weight: 7
+	Length: 9
+	Width: 16
+	Height: 13
+	Instructions: input calculating deposit
 =========================References=========================
-	Employee Number: 1786523
-	Invoice Number: INV6938796
-	Purchase Order number: ORD8957224
-	Pre-Sold Order Reference #: REF6501345
+	Employee Number: 6159744
+	Invoice Number: INV7427881
+	Purchase Order number: ORD7324866
+	Pre-Sold Order Reference #: REF3098798
 =========================Services=========================
-	PHS

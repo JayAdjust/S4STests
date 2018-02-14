@@ -1,7 +1,7 @@
 import faker from 'faker';
 import fs, { read } from 'fs';
 import * as _ from '../Puppeteer/page_helper';
-import * as Selectors from '../Puppeteer/page_selectors';
+import { Selectors } from './wizard_selectors';
 
 
 // TODO: Create a module for all puppeteer repetitive uses
@@ -10,9 +10,6 @@ import * as Selectors from '../Puppeteer/page_selectors';
 const measurements = ["metric", "imperial"];
 const parcelPackages = ["EV", "BX"];
 const freightPackages = ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"];
-const additionalServices = ["HFP","NCV","TRD","WKD","DCV","PHS"];
-const freightServices = ["Appointment","COD","Heating","Hold for pick up Saturday","Hold for pickup",
-	"Inside delivery","Private house","Private house pick up","Tailgate","Tailgate pick up", "DCV"];
 const purposes = ["COM","PER","DOC","RET"];
 const dutyOptions = ["SHIPPER","RECIPIENT","THIRD_PARTY"];
 const broker = "cisuu7xyi000o0yghovn49w6u";
@@ -23,80 +20,6 @@ let browser;
 let currentpkgs;
 let refsServices;
 let currentAccount;
-
-/**
- * <Private Functions>
- */
-async function ChangeMeasurement(measurement){
-	if(measurement == "metric")
-		await page.click(".control-toggle.weight span:nth-child(1) span:nth-child(2)");
-	else
-		await page.click(".control-toggle.weight span:nth-child(1) span:nth-child(1)");
-}
-async function GenerateAdditionalServices(account){
-	// Generate a random number of services to select
-	let numServices = Math.floor(Math.random() * 3);
-	// Create an array to send back all services that were added
-	let selected = [];
-
-	// Check if a private home delivery
-	let homeDelivery;
-	try{
-		homeDelivery = await page.$eval("input[name=PHD]", (element) => {
-			return element.checked;
-		});
-	}catch(error){}
-
-	// add numServices amount of additional services
-	for(let i = 0; i < numServices; i++){
-		// Get a random service
-		let serv = account != "8292093"?  
-			additionalServices[Math.floor(Math.random() * additionalServices.length)] : 
-			freightServices[Math.floor(Math.random() * freightServices.length)];
-
-		// If it's already selected, continue trying to select another
-		if(selected.indexOf(serv) != -1){
-			i--;
-			continue;
-		}
-
-		// If WKD or DVC are already select and the current random service is either or,
-		// get another due to not being able to do add WKD if DVC, or other way around
-		if(serv == "DCV" || serv == "WKD"){
-			if(selected.indexOf("WKD") != -1 || selected.indexOf("DCV") != -1){
-				i--;
-				continue;
-			}
-		}
-
-		// If it's a home delivery trade show is not available
-		// If it's not a home delivery PHS is not available
-		if((serv == "TRD" && homeDelivery) || serv == "PHS" && !homeDelivery)
-			continue;
-
-		// Add the addtional service if passed everythign else
-		let ready = false;
-		while(!ready){
-			ready = await page.$eval("input[name="+ serv +"]", (element) => {
-				element.click();
-				return element.checked;
-			});
-		}
-
-		if(serv == "DCV"){
-			await page.waitForSelector(".dicom-surcharge-input", {timeout: 10000, visible: true});
-			await page.type(".dicom-surcharge-input", "10");
-		}
-
-		// push to the array
-		selected.push(serv);
-	}
-	return selected;
-}
-
-/**
- * </Private Functions>
- */
 
 export const PackageDetails = {
 	PackageRandomizer: () => {
@@ -131,20 +54,15 @@ export const Wizard = {
 	},
 	
 	GoToWizard: async() => {
-		let wizard_selector = "#root > div > div.page-container > div.view-container > div > div.side-bar > div.menu-item.hover-over.shipping > span > div.sub-routes > div:nth-child(2)";
-		await page.hover("#root > div > div.page-container > div.view-container > div > div.side-bar > div.menu-item.hover-over.shipping");
-		await page.waitForSelector(wizard_selector, {timeout: 10000, visible: true});
-		await page.click(wizard_selector);
-		await page.waitForSelector(".shipping-wizzard", {timeout: 10000, visible: true});
+		await page.hover(Selectors.divs.shipping_sidebar);
+		await page.waitForSelector(Selectors.divs.wizard_selector, {timeout: 10000, visible: true});
+		await page.click(Selectors.divs.wizard_selector);
+		await page.waitForSelector(Selectors.divs.wizard_container, {timeout: 10000, visible: true});
 	},
 	AddressDetails: async(from, to, type, account) => {
-		// Get the from contact
 		await _.Wizard.GetFromContact(from);
-		// Get the to contact
 		await _.Wizard.GetToContact(to);
-		// Chnage the payment type
 		await _.changeSelect.withName("payment_type", type);
-		// Change the billing account
 		await _.changeSelect.withName("billing_account", account);
 
 		currentAccount = account;
@@ -166,18 +84,15 @@ export const Wizard = {
 
 			// Check to see if the package is an Envelope
 			if(currentAccount != "8292093" && _package.type.parcel != "EV"){
-				// Measurement disabled for now
-				//await ChangeMeasurement(_package.measurement);await page.waitFor(1500);
+				await _.Wizard.ChangeMeasurement(_package.measurement);
 				await _.changeInput.withName("weight", _package.weight.toString());
 				await _.changeInput.withName("length", _package.length.toString());
 				await _.changeInput.withName("width", _package.width.toString());
 				await _.changeInput.withName("height", _package.height.toString());
 			}
 
-			// Change the instructions
+			// Change the instructions & service_type
 			await _.changeInput.withName("instructions", _package.instructions);
-
-			// Change the service type
 			await _.changeSelect.withName("service_type", service);
 
 			// Change the pickup date
@@ -186,7 +101,7 @@ export const Wizard = {
 			await _.changeSelect.withName("pickup_date", currentDate.toISOString().split('T')[0]);
 
 			// Click on add package
-			await page.click(".btn.btn-md.btn-secondary.inline");
+			await page.click(Selectors.buttons.add_package);
 			// Add package to the array
 			packages.push(_package);
 		}
@@ -243,20 +158,20 @@ export const Wizard = {
 		};
 
 		// Change all references 1=EMP, 2=INV, 3=PON, 4=PRE 
-		await _.changeInput.withSelector(Selectors.Wizard.inputs.employee, references.employee);
-		await _.changeInput.withSelector(Selectors.Wizard.inputs.invoice, references.invoice);
-		await _.changeInput.withSelector(Selectors.Wizard.inputs.purchase_order, references.order);
-		await _.changeInput.withSelector(Selectors.Wizard.inputs.pre_sold_order, references.reference);
+		await _.changeInput.withSelector(Selectors.inputs.employee, references.employee);
+		await _.changeInput.withSelector(Selectors.inputs.invoice, references.invoice);
+		await _.changeInput.withSelector(Selectors.inputs.purchase_order, references.order);
+		await _.changeInput.withSelector(Selectors.inputs.pre_sold_order, references.reference);
 
-		let selected = await GenerateAdditionalServices(account);
-
+		//let selected = await GenerateAdditionalServices(account);
+		let selected = await _.Wizard.GenerateAdditionalServices(account);
 		refsServices = {references: references, services: selected};
 		return {references: references, services: selected};
 	},
 	RestartShipment: async () => {
 		await Wizard.GoToWizard();
-		await page.click(".dicon-redo");
-		await page.waitForSelector(".shipping-wizzard", {timeout: 10000, visible: true});
+		await page.click(Selectors.buttons.restart_shipment);
+		await page.waitForSelector(Selectors.divs.wizard_container, {timeout: 10000, visible: true});
 	}
 }
 
@@ -286,7 +201,6 @@ async function WriteTitle(title, stream){
 		stream.write("=")
 	stream.write("\n");
 }
-
 export const Writer = {
 	WriteDataToFile: async (full_path) => {
 		let packages = currentpkgs;
@@ -299,7 +213,7 @@ export const Writer = {
 			WriteTitle("Packages", stream);
 			for(var i = 0; i < packages.length; i++){
 				stream.write("Package #" + (i+1) + "\n");
-				stream.write("\tType: " + packages[i].type + "\n");
+				stream.write("\tType: " + currentAccount != "8292093"? packages[i].type.parcel : packages[i].type.freight + "\n");
 				stream.write("\tQuantity: " + packages[i].quantity + "\n");
 	
 				if(packages[i].type != "EV"){

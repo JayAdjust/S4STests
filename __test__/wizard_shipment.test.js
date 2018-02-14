@@ -1,6 +1,6 @@
 import { _ } from '../src/app/modules/Start/start_controller';
-import * as Wizard from '../src/app/modules/Shipments/wizard_controller';
-import * as Helper from '../src/app/modules/Shipments/shipment_helper';
+import * as Wizard from '../src/app/modules/Wizard/wizard_controller';
+import * as Helper from '../src/app/modules/Wizard/wizard_helper';
 import { Manifest } from '../src/app/modules/Manifests/manifests_helper';
 import { SignIn } from '../src/app/modules/Signin/signin_helper';
 import { PAYMENT_TYPES, ACCOUNTS, SERVICE_TYPES, PICKUP_POINTS, PICKUP_TIMES} from '../src/app/modules/Shipments/shipment_details';

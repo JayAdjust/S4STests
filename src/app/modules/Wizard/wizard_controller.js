@@ -1,8 +1,9 @@
 import faker from "faker";
 import fs from 'fs';
-import { Wizard, Writer } from './shipment_helper';
-import { Helper } from './shipment_details'; 
+import { Wizard, Writer } from './wizard_helper';
+import { Helper } from '../Shipments/shipment_details'; 
 import { Manifest } from '../Manifests/manifests_helper';
+import { Selectors } from './wizard_selectors';
 import * as _ from '../Puppeteer/page_helper';
 
 // Puppeteer page & browser
@@ -51,12 +52,9 @@ export const Tests = {
 
 	}
 }
-/**
- * Private methods
- */ 
 
 /**
- * DomesticShipementTest will create a shipment and test if all information given and changed
+ * DomesticShipementTest && XBorderShipmentTest will create a shipment and test if all information given and changed
  * 	is valid, as well check if everything was printed.
  * 
  * @param {*} _from the from contact for the shipment
@@ -66,19 +64,18 @@ export const Tests = {
  * @param {*} _service the service type for the shipment
  * @param {*} _pickupReady the pickup ready by time
  * @param {*} _pickupClosing the pickup closing time
- * @param {*} _pickupPoint the pcikup poitn for the shipment
+ * @param {*} _pickupPoint the pcikup point for the shipment
+ * @param {*} path the path to save files
  */
 function DomesticShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint, path){
-	let account = _account;
-	currentWeight = 0, currentPieces = 0;
-	ChangeToWizardTests();
+	let account = _account, currentWeight = 0, currentPieces = 0;
+	ChangeToWizardTests()
 	AddressDetailsTests(_from,_to,_paymentType,_account);
 	PackageDetailsTests(_service, false);
 	ConfirmPayTests(_pickupReady, _pickupClosing, _pickupPoint, _account, path);
 }
 function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint, path){
-	let account = _account;
-	
+	let account = _account, currentWeight = 0, currentPieces = 0;
 	ChangeToWizardTests();
 	AddressDetailsTests(_from,_to,_paymentType,_account);
 	PackageDetailsTests(_service, true);
@@ -91,9 +88,9 @@ function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pick
  */
  function ChangeToWizardTests(){
 	test("Going to wizard", async () => {
-		if(await page.$(".shipping-wizzard") == null){
+		if(await page.$(Selectors.divs.wizard_container) == null){
 			await Wizard.GoToWizard();
-			let element = await page.$(".shipping-wizzard");
+			let element = await page.$(Selectors.divs.wizard_container);
 			return expect(element).toBeDefined();
 		}
 		return expect(true).toBe(true);
@@ -431,6 +428,7 @@ function ConfirmPayTests(pickupReady,pickupClosing,pickupPoint,account,path){
 
 
 						await popup.waitFor(5000);
+						//ERROR HERE TODO
 						const html = await popup.evaluate('new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML');
 						await Writer.WritetoFile(path + "html.txt", html);
 					}catch(error){
