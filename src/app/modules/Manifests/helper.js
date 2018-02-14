@@ -1,14 +1,11 @@
-import { _ } from '../Start/controller';
-
 let page;
 let browser;
 
 export const Manifest = {
-    Setup: () => {
-		page = _.GetPage();
-        browser = _.GetBrowser();
-        
-        return page != null && browser != null;
+    Setup: (_page, _browser) => {
+		page = _page;
+        browser = _browser;
+        return (page != null && browser != null);
     },
     GoToManifests: async () => {
         // click the shipments tab in the sidebar
@@ -18,6 +15,15 @@ export const Manifest = {
 
         return !!(await page.$('.shipment-table-container'));
     },
+    
+
+
+
+
+
+
+
+
     onGenerateManifest: async (manifestType, manifestService, showManifestPricing, manifestTIme, arrayOfManifestsToTake) => {
         // we can't generate manifests if we are not on the page!
         var isOnManifestPage = !!(await page.$('.shipment-table-container'));

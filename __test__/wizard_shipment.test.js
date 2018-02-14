@@ -1,10 +1,10 @@
 import { _ } from '../src/app/modules/Start/controller';
 import * as Wizard from '../src/app/modules/Wizard/controller';
 import * as Helper from '../src/app/modules/Wizard/helper';
-import { Manifest } from '../src/app/modules/Manifests/manifests_helper';
-import { SignIn } from '../src/app/modules/Signin/signin_helper';
+import { Manifest } from '../src/app/modules/Manifests/helper';
+import { SignIn } from '../src/app/modules/Signin/helper';
 import { PAYMENT_TYPES, ACCOUNTS, SERVICE_TYPES, PICKUP_POINTS, PICKUP_TIMES} from '../src/app/modules/Shipments/shipment_details';
-import * as Contact from '../src/app/modules/Contacts/contacts_controller';
+import * as Contact from '../src/app/modules/Contacts/controller';
 
 function RandomizeShipment(id){
     return {
@@ -80,7 +80,7 @@ describe("Pre-tests", () => {
     }, 1000);
 
     test("Wizard setup", () => {
-        expect(Wizard.Tests.Setup(page, browser)).toBe(true);
+        expect(Wizard.Setup(page, browser)).toBe(true);
     }, 1000);
     test("Contacts setup", () => {
         expect(Contact.Tests.Setup()).toBe(true);
@@ -174,8 +174,8 @@ describe("Pre-tests", () => {
             point: PICKUP_POINTS.mailbox,
             path: (DOMESTIC_PATH + "test/")
         };
-        Wizard.Tests.GenerateDomesticTest(shipment);
-        Wizard.Tests.GenerateManifest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", (DOMESTIC_PATH + "test/"));
+        Wizard.GenerateDomesticTest(shipment);
+        Wizard.GenerateManifest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", (DOMESTIC_PATH + "test/"));
     }, 150000);
 //}
 

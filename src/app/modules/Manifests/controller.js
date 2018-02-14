@@ -1,12 +1,12 @@
-import { _ } from '../Start/controller';
 import { Manifest } from './helper';
 
-/**
- * Tests for Jest
- */ 
+let page, browser;
+
 export const Tests = {
-    Setup: () => {
-        Manifest.Setup();
+    Setup: (_page, _browser) => {
+        page = _page;
+        browser = _browser;
+        return (pade != null && browser != null && Manifest.Setup(_page, _browser));
     },
     GoToManifest: async () => {
         return await Manifest.GoToManifests();

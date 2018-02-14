@@ -11,46 +11,42 @@ let page,browser;
 // Data to keep for validation
 let currentWeight = 0,currentPieces = 0,currentInfo = null;
 
-export const Tests = {
-	Setup: (_page,_browser) => {
-		page = _page;
-		browser = _browser;
+export const Setup = (_page,_browser) => {
+	page = _page;
+	browser = _browser;
 
-		return (page != null && browser != null && _.Setup(_page, _browser) && Wizard.Setup(_page, _browser));
-	},
-	GenerateDomesticTest: (info) => {
-		currentInfo = info;
-		DomesticShipmentTest(
-			info.from,
-			info.to,
-			info.payment,
-			info.account,
-			info.service,
-			info.ready,
-			info.closing,
-			info.point,
-			info.path
-		);
-	},
-	// SHOULDNT BE HERE
-	GenerateManifest: (showPricing, address, path) => {
-		GenerateManifest(showPricing, address, path);
-	},
-	GenerateXBorderTest: (info) => {
-		anyErrors = false;
-		XBorderShipmentTest(
-			info.from,
-			info.to,
-			info.payment,
-			info.account,
-			info.service,
-			info.ready,
-			info.closing,
-			info.point,
-			info.path
-		);
-
-	}
+	return (page != null && browser != null && _.Setup(_page, _browser) && Wizard.Setup(_page, _browser));
+}
+export const GenerateDomesticTest = (info) => {
+	currentInfo = info;
+	DomesticShipmentTest(
+		info.from,
+		info.to,
+		info.payment,
+		info.account,
+		info.service,
+		info.ready,
+		info.closing,
+		info.point,
+		info.path
+	);
+}
+export const GenerateXBorderTest = (info) => {
+	currentInfo = info;
+	XBorderShipmentTest(
+		info.from,
+		info.to,
+		info.payment,
+		info.account,
+		info.service,
+		info.ready,
+		info.closing,
+		info.point,
+		info.path
+	);
+}
+export const GenerateManifest = (showPricing, address, path) => {
+	GenerateManifest(showPricing, address, path);
 }
 
 /**
