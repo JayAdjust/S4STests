@@ -1,7 +1,7 @@
-import { _ } from '../Start/start_controller';
+import { _ } from '../Start/controller';
 import faker from "faker";
-import { Contact } from './contact_helper';
-import { Selectors } from './contacts_selectors';
+import { Contact } from './helper';
+import { Selectors } from './selectors';
 
 let page;
 let browser;

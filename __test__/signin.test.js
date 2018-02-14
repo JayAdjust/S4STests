@@ -1,5 +1,5 @@
-import { _ } from '../src/app/modules/Start/start_controller';
-import * as SignIn from '../src/app/modules/Signin/signin_controller';
+import { _ } from '../src/app/modules/Start/controller';
+import * as SignIn from '../src/app/modules/Signin/controller';
 
 beforeAll(async () => {
     await _.Run();

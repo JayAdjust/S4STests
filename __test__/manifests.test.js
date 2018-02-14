@@ -1,7 +1,7 @@
-import { _ } from '../src/app/modules/Start/start_controller';
-import * as Manifests from '../src/app/modules/Manifests/manifests_controller';
-import { SignIn } from '../src/app/modules/Signin/signin_helper';
-import { Shipments } from '../src/app/modules/Shipments/wizard_controller';
+import { _ } from '../src/app/modules/Start/controller';
+import * as Manifests from '../src/app/modules/Manifests/controller';
+import { SignIn } from '../src/app/modules/Signin/helper';
+import { Shipments } from '../src/app/modules/Shipments/controller';
 
 /**
  * NOTE: for this test to work, please generate ALL non-generated

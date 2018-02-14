@@ -1,5 +1,5 @@
-import { _ } from '../src/app/modules/Start/start_controller';
-import * as SignUp from '../src/app/modules/Signup/signup_controller';
+import { _ } from '../src/app/modules/Start/controller';
+import * as SignUp from '../src/app/modules/Signup/controller';
 
 beforeAll(async () => {
     await _.Run();

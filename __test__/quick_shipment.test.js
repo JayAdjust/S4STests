@@ -1,5 +1,5 @@
-import { _ } from '../src/app/modules/Start/start_controller';
-import * as Quick from '../src/app/modules/Shipments/quick_controller';
+import { _ } from '../src/app/modules/Start/controller';
+import * as Quick from '../src/app/modules/Shipments/controller';
 
 beforeAll(async () => {
     await _.Run();

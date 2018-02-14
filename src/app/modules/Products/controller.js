@@ -1,5 +1,5 @@
-import { _ } from '../Start/start_controller';
-import { Product } from './products_helper';
+import { _ } from '../Start/controller';
+import { Product } from './helper';
 
 let page;
 let browser;

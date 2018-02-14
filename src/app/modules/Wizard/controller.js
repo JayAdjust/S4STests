@@ -1,9 +1,9 @@
 import faker from "faker";
 import fs from 'fs';
-import { Wizard, Writer } from './wizard_helper';
+import { Wizard, Writer } from './helper';
 import { Helper } from '../Shipments/shipment_details'; 
 import { Manifest } from '../Manifests/manifests_helper';
-import { Selectors } from './wizard_selectors';
+import { Selectors } from './selectors';
 import * as _ from '../Puppeteer/page_helper';
 
 // Puppeteer page & browser

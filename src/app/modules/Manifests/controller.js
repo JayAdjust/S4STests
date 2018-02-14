@@ -1,5 +1,5 @@
-import { _ } from '../Start/start_controller';
-import { Manifest } from './manifests_helper';
+import { _ } from '../Start/controller';
+import { Manifest } from './helper';
 
 /**
  * Tests for Jest

@@ -1,7 +1,7 @@
 import faker from 'faker';
 import fs, { read } from 'fs';
 import * as _ from '../Puppeteer/page_helper';
-import { Selectors } from './wizard_selectors';
+import { Selectors } from './selectors';
 
 
 // TODO: Create a module for all puppeteer repetitive uses
@@ -172,24 +172,6 @@ export const Wizard = {
 		await Wizard.GoToWizard();
 		await page.click(Selectors.buttons.restart_shipment);
 		await page.waitForSelector(Selectors.divs.wizard_container, {timeout: 10000, visible: true});
-	}
-}
-
-export const Quick = {
-
-	// Function
-	// 
-	GoToQuick: async() => {
-		await page.hover(".menu-item.active.hover-over.shipping");
-		await page.waitForSelector(".sub-routes div:nth-child(3)");
-		await page.click(".sub-routes div:nth-child(3)");
-	},
-
-	Setup: (_page, _browser) => {
-		page = _page;
-		browser = _browser;
-
-		return (page != null && browser != null);
 	}
 }
 

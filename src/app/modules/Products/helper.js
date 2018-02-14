@@ -1,4 +1,4 @@
-import { _ } from '../Start/start_controller';
+import { _ } from '../Start/controller';
 
 let page;
 let browser;

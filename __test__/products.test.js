@@ -1,6 +1,6 @@
-import { _ } from '../src/app/modules/Start/start_controller';
-import * as Products from '../src/app/modules/Products/products_controller';
-import { SignIn } from '../src/app/modules/Signin/signin_helper';
+import { _ } from '../src/app/modules/Start/controller';
+import * as Products from '../src/app/modules/Products/controller';
+import { SignIn } from '../src/app/modules/Signin/helper';
 
 beforeAll(async () => {
     await _.Run();

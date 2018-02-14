@@ -1,6 +1,6 @@
-import { _ } from '../Start/start_controller';
+import { _ } from '../Start/controller';
 import faker from "faker";
-import { SignIn } from './signin_helper';
+import { SignIn } from './helper';
 
 const VALID_EMAIL = "Jeremy@dicom.com";
 const VALID_PASS = "test123";

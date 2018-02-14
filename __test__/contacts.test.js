@@ -1,6 +1,6 @@
-import { _ } from '../src/app/modules/Start/start_controller';
-import * as Contacts from '../src/app/modules/Contacts/contacts_controller';
-import { SignIn } from '../src/app/modules/Signin/signin_helper';
+import { _ } from '../src/app/modules/Start/controller';
+import * as Contacts from '../src/app/modules/Contacts/controller';
+import { SignIn } from '../src/app/modules/Signin/helper';
 
 beforeAll(async () => {
     await _.Run();

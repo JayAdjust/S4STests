@@ -1,5 +1,5 @@
-import { _ } from '../Start/start_controller';
-import { SignUp } from './signup_helper';
+import { _ } from '../Start/controller';
+import { SignUp } from './helper';
 import faker from "faker";
 
 const MIN_PASSWORD_LENGTH = 6;
