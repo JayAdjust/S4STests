@@ -2,16 +2,9 @@ import faker from 'faker';
 import fs, { read } from 'fs';
 import * as _ from '../Puppeteer/page_helper';
 import { Selectors } from './selectors';
-
-
-// TODO: Create a module for all puppeteer repetitive uses
+import * as details from '../Shipments/shipment_details';
 
 // Constants
-const measurements = ["metric", "imperial"];
-const parcelPackages = ["EV", "BX"];
-const freightPackages = ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"];
-const purposes = ["COM","PER","DOC","RET"];
-const dutyOptions = ["SHIPPER","RECIPIENT","THIRD_PARTY"];
 const broker = "cisuu7xyi000o0yghovn49w6u";
 
 // FIELDS
@@ -25,10 +18,10 @@ export const PackageDetails = {
 	PackageRandomizer: () => {
 		return {
 			type: {
-				parcel: parcelPackages[Math.floor(Math.random() * parcelPackages.length)],
-				freight: freightPackages[Math.floor(Math.random() * freightPackages.length)]
+				parcel: details.PARCEL_PACKAGES.array[Math.floor(Math.random() * details.PARCEL_PACKAGES.array.length)],
+				freight: details.FREIGHT_PACKAGES.array[Math.floor(Math.random() * details.FREIGHT_PACKAGES.array.length)]
 			},
-			measurement: measurements[Math.floor(Math.random() * measurements.length)],
+			measurement: details.MEASUREMENTS.array[Math.floor(Math.random() * details.MEASUREMENTS.array.length)],
 			quantity: Math.floor(Math.random() * 5) + 2,
 			weight: Math.floor(Math.random() * 10) + 1,
 			length: Math.floor(Math.random() * 15) + 5,
@@ -62,8 +55,8 @@ export const Wizard = {
 	AddressDetails: async(from, to, type, account) => {
 		await _.Wizard.GetFromContact(from);
 		await _.Wizard.GetToContact(to);
-		await _.changeSelect.withName("payment_type", type);
-		await _.changeSelect.withName("billing_account", account);
+		await _.changeSelect.withName(Selectors.byName.payment_type, type);
+		await _.changeSelect.withName(Selectors.byName.billing_account, account);
 
 		currentAccount = account;
 	},
@@ -76,29 +69,29 @@ export const Wizard = {
 			// Generate a random package
 			let _package = PackageDetails.PackageRandomizer();
 			// Change the type of package
-			await _.changeSelect.withName("type", currentAccount != "8292093"? _package.type.parcel : _package.type.freight);
+			await _.changeSelect.withName(Selectors.byName.package_type, currentAccount != details.ACCOUNTS.ca_freight? _package.type.parcel : _package.type.freight);
 			
 			// Change the quantity to the package
 			//await ChangePackageQuantity(_package.quantity.toString());
-			await _.changeInput.withName("quantity", _package.quantity.toString());
+			await _.changeInput.withName(Selectors.byName.package_quantity, _package.quantity.toString());
 
 			// Check to see if the package is an Envelope
-			if(currentAccount != "8292093" && _package.type.parcel != "EV"){
+			if(currentAccount != details.ACCOUNTS.ca_freight && _package.type.parcel != details.PARCEL_PACKAGES.envelope){
 				await _.Wizard.ChangeMeasurement(_package.measurement);
-				await _.changeInput.withName("weight", _package.weight.toString());
-				await _.changeInput.withName("length", _package.length.toString());
-				await _.changeInput.withName("width", _package.width.toString());
-				await _.changeInput.withName("height", _package.height.toString());
+				await _.changeInput.withName(Selectors.byName.package_weight, _package.weight.toString());
+				await _.changeInput.withName(Selectors.byName.package_length, _package.length.toString());
+				await _.changeInput.withName(Selectors.byName.package_width, _package.width.toString());
+				await _.changeInput.withName(Selectors.byName.package_height, _package.height.toString());
 			}
 
 			// Change the instructions & service_type
-			await _.changeInput.withName("instructions", _package.instructions);
-			await _.changeSelect.withName("service_type", service);
+			await _.changeInput.withName(Selectors.byName.instructions, _package.instructions);
+			await _.changeSelect.withName(Selectors.byName.service_type, service);
 
 			// Change the pickup date
 			let currentDate = new Date();
 			currentDate.setDate(currentDate.getDate() + 1);
-			await _.changeSelect.withName("pickup_date", currentDate.toISOString().split('T')[0]);
+			await _.changeSelect.withName(Selectors.byName.date, currentDate.toISOString().split('T')[0]);
 
 			// Click on add package
 			await page.click(Selectors.buttons.add_package);
@@ -110,11 +103,11 @@ export const Wizard = {
 	},
 	CustomsDetails: async() => {
 		await page.waitFor(2500);
-		let details = {
-			purpose: purposes[Math.floor(Math.random() * purposes.length)],
+		let custom_details = {
+			purpose: details.PURPOSES.array[Math.floor(Math.random() * details.PURPOSES.array.length)],
 			description: faker.random.words(2),
 			broker: broker,
-			duty: dutyOptions[Math.floor(Math.random() * dutyOptions.length)]
+			duty: details.DUTY_OPTIONS.array[Math.floor(Math.random() * details.DUTY_OPTIONS.array.length)]
 		};
 
 		await _.changeInput.withName("productName", "PS4");
@@ -124,29 +117,29 @@ export const Wizard = {
 		await page.click("input[name=description]");
 		await page.waitFor(2500);
 		//div.form-group.std.broker-select > select
-		await _.changeSelect.withName("purpose", details.duty);
-		await _.changeSelect.withName("broker_id", details.duty);
-		await _.changeSelect.withName("bill_to", details.duty);
-		if(details.duty == "THIRD_PARTY"){
+		await _.changeSelect.withName("purpose", custom_details.duty);
+		await _.changeSelect.withName("broker_id", custom_details.duty);
+		await _.changeSelect.withName("bill_to", custom_details.duty);
+		if(custom_details.duty == "THIRD_PARTY"){
 			await page.click(".dicon-book");
 			await page.click("div.address-book.customs > section > div:nth-child(1) > div:nth-child(2) > div.contact-entry-note");
 		}
-		await _.changeInput.withName("description", details.description);
+		await _.changeInput.withName("description", custom_details.description);
 
 		await page.waitFor(2500);
 
-		return details;
+		return custom_details;
 
 	},
 	ConfirmAndPay: async(readyBy, closingTime, pickupPoint, account) => {
 		await page.waitFor(2500);
 
 		// Change the pickupPoint
-		await _.changeSelect.withName("pickup_point", pickupPoint);
+		await _.changeSelect.withName(Selectors.byName.point, pickupPoint);
 		// Change Pickup ready by
-		await _.changeSelect.withName("pickup_ready_by", readyBy);
+		await _.changeSelect.withName(Selectors.byName.ready_by, readyBy);
 		// Change pickup closing time
-		await _.changeSelect.withName("pickup_closing_time", closingTime);
+		await _.changeSelect.withName(Selectors.byName.closing_time, closingTime);
 
 		// Generate random references and save them in order to 
 		// send them back for validation on printing

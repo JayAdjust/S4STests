@@ -6,7 +6,7 @@ export const Tests = {
     Setup: (_page, _browser) => {
         page = _page;
         browser = _browser;
-        return (pade != null && browser != null && Manifest.Setup(_page, _browser));
+        return (page != null && browser != null && Manifest.Setup(_page, _browser));
     },
     GoToManifest: async () => {
         return await Manifest.GoToManifests();

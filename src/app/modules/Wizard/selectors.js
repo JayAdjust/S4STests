@@ -26,4 +26,27 @@ export const Selectors = {
         metric: "div.control-toggle.weight > span > span:nth-child(2)",
         imperial: "div.control-toggle.weight > span > span:nth-child(1)",
     },
+    
+    byName: {
+        // Shipment
+        payment_type: "payment_type",
+        billing_account: "billing_account",
+
+        // Package
+        package_type: "type",
+        package_quantity: "quantity",
+        package_width: "width",
+        package_height: "height",
+        package_length: "length",
+        package_weight: "weight",
+        instructions: "instructions",
+        service_type: "service_type",
+
+        // Pickup
+        date: "pickup_date",
+        point: "pickup_point",
+        ready_by: "pickup_ready_by",
+        closing_time: "pickup_closing_time",
+
+    },
 }

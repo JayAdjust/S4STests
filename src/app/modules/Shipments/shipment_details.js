@@ -64,3 +64,39 @@ export const PICKUP_TIMES = {
 	seven: "19:00",
 	array: ["7:30","8:00","8:30","9:00","9:30","10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00",]
 }
+export const MEASUREMENTS = {
+	metric: "metric",
+	imperial: "imperial",
+	array: ["metric", "imperial"]
+};
+export const PARCEL_PACKAGES = {
+	envelope: "EV",
+	box: "BX",
+	array: ["EV", "BX"],
+}
+export const FREIGHT_PACKAGES = {
+	tube: "tube",
+	other: "other",
+	barrel: "baril",
+	skid: "skid",
+	box: "box",
+	crate: "crate",
+	full_load: "full",
+	bundle: "bundle",
+	piece: "piece",
+	pallet: "pallet",
+	array: ["tube","other","baril","skid","box","crate","full","bundle","piece","pallet"],
+}
+export const PURPOSES = {
+	commercial: "COM",
+	personal: "PER",
+	documents: "DOC",
+	repair_return: "RET",
+	array: ["COM","PER","DOC","RET"],
+}
+export const DUTY_OPTIONS = {
+	shipper: "SHIPPER",
+	recipient: "RECIPIENT",
+	third_party: "THIRD_PARTY",
+	array: ["SHIPPER","RECIPIENT","THIRD_PARTY"],
+}

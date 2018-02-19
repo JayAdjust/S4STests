@@ -17,89 +17,83 @@ export const Setup = (_page,_browser) => {
 
 	return (page != null && browser != null && _.Setup(_page, _browser) && Wizard.Setup(_page, _browser));
 }
-export const GenerateDomesticTest = (info) => {
+export async function GenerateDomesticTest(info) {
 	currentInfo = info;
-	DomesticShipmentTest(
-		info.from,
-		info.to,
-		info.payment,
-		info.account,
-		info.service,
-		info.ready,
-		info.closing,
-		info.point,
-		info.path
-	);
+	try{
+		await doChangetoWizard();
+
+		await doAddressDetails(info);
+		await doAddressDetailsProceed();
+
+		await doPackageDetails(info);
+		await doPackageDetailsProceed(false);
+
+		await doConfirmPay(info);
+		await doConfirmPayProceed(info.path);
+
+	}catch(err){ done.fail(err); }
 }
-export const GenerateXBorderTest = (info) => {
+export const GenerateXBorderTest = async (info) => {
 	currentInfo = info;
-	XBorderShipmentTest(
-		info.from,
-		info.to,
-		info.payment,
-		info.account,
-		info.service,
-		info.ready,
-		info.closing,
-		info.point,
-		info.path
-	);
+	try{
+		await doChangetoWizard();
+
+		await doAddressDetails(info);
+		await doAddressDetailsProceed();
+
+		await doPackageDetails(info);
+		await doPackageDetailsProceed(false);
+
+		//await doCustomsDetails();
+		//await doCustomsDetailsProceed();
+
+		await doConfirmPay(info);
+
+	}catch(err){ done.fail(err); }
 }
 export const GenerateManifestTest = (showPricing, address, path) => {
 	GenerateManifest(showPricing, address, path);
 }
 
 /**
- * DomesticShipementTest && XBorderShipmentTest will create a shipment and test if all information given and changed
- * 	is valid, as well check if everything was printed.
  * 
- * @param {*} _from the from contact for the shipment
- * @param {*} _to  the to contact for the shipment
- * @param {*} _paymentType the payment type for the shipment
- * @param {*} _account the billing account for the shipment
- * @param {*} _service the service type for the shipment
- * @param {*} _pickupReady the pickup ready by time
- * @param {*} _pickupClosing the pickup closing time
- * @param {*} _pickupPoint the pcikup point for the shipment
- * @param {*} path the path to save files
+ * 			Change to Wizard && Restart Shipment
+ * 
  */
-function DomesticShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint, path){
-	let account = _account, currentWeight = 0, currentPieces = 0;
-	ChangeToWizardTests()
-	AddressDetailsTests(_from,_to,_paymentType,_account);
-	PackageDetailsTests(_service, false);
-	ConfirmPayTests(_pickupReady, _pickupClosing, _pickupPoint, _account, path);
-}
-function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pickupReady, _pickupClosing, _pickupPoint, path){
-	let account = _account, currentWeight = 0, currentPieces = 0;
-	ChangeToWizardTests();
-	AddressDetailsTests(_from,_to,_paymentType,_account);
-	PackageDetailsTests(_service, true);
-	CustomsDetailsTests();
-	ConfirmPayTests(_pickupReady, _pickupClosing, _pickupPoint, _account, path);
+export async function doChangetoWizard(){
+	if(await page.$(Selectors.divs.wizard_container) == null){
+		await Wizard.GoToWizard();
+		let element = await page.$(Selectors.divs.wizard_container);
+		expect(element).toBeDefined();
+	}
+	await Wizard.RestartShipment();
+	let element = await page.$(".split-layout.wizard-address");
+	expect(element).toBeDefined();
 }
 
 /**
- * ChangeToWizardTests tests to see if the Go to Wizard works
+ * 
+ * 			Address Details
+ * 
  */
- function ChangeToWizardTests(){
-	let x = test("Going to wizard", async () => {
-		if(await page.$(Selectors.divs.wizard_container) == null){
-			await Wizard.GoToWizard();
-			let element = await page.$(Selectors.divs.wizard_container);
-			return expect(element).toBeDefined();
-		}
-		return expect(true).toBe(true);
-
-	}, 2500);
-	test("Restart Shipment", async () => {
-		await Wizard.RestartShipment();
-		let element = await page.$(".split-layout.wizard-address");
-		return expect(element).toBeDefined();
-	}, 2500);
- }
-
- async function AddressDetailsValidation(from, to, paymentType, account){
+export async function doAddressDetails(shipment){
+	currentInfo = info;
+	await Wizard.AddressDetails(shipment.from, shipment.to, shipment.payment, shipment.account);
+	let validation = await AddressDetailsValidation(shipment.from, shipment.to, shipment.payment, shipment.account);
+	expect(validation).toBe(true);
+	return validation;
+}
+export async function doAddressDetailsProceed(){
+	let ready = false;
+	while(!ready){
+		ready = await page.$eval(".btn.next", (element) => {
+			return element.innerText == "Next";
+		});
+	}
+	await page.click(".btn.next", {waitUntil: 'networkidle'});
+	expect(!!(await page.$(".packageForm"))).toBe(true);
+}
+async function AddressDetailsValidation(from, to, paymentType, account){
 	let res = true, data, count = 0;
 
 	// From
@@ -129,53 +123,35 @@ function XBorderShipmentTest(_from, _to, _paymentType, _account, _service, _pick
 	res |= data == account? 1 << (++count - 1): 0; 		// 1111 
 	return (res == Math.pow(2,count) - 1);
 
- }
- /**
-  * AddressDetailsTests tests the address details and validates the information
-  * 	to see if everything was properly changed
-  */
-function AddressDetailsTests(from, to, paymentType, account){
-	let onPage = true;
-
-	// Check to see if you are on the page
-	describe("Address Details Pre-Tests", () => {
-		test("Check to see if on address Details Page", async () => {
-			let element = await page.$(".split-layout.wizard-address");
-			onPage = element != null;
-			expect(element).toBeDefined();
-		});
-	});
-	describe("Address Details", () => {
-		if(onPage){
-			// Generate the Addres details (Change all details needed)
-			test("Generating Address Details", async () => {
-				await Wizard.AddressDetails(from, to, paymentType, account);
-				expect(await AddressDetailsValidation(from, to, paymentType, account)).toBe(true);
-			}, 20000);
-
-			// Validate the changes and if they are valid
-			describe("Validations", () => {
-				test("Able to proceed to package details", async () => {
-					let ready = false;
-					while(!ready){
-						ready = await page.$eval(".btn.next", (element) => {
-							return element.innerText == "Next";
-						});
-					}
-					await page.click(".btn.next", {waitUntil: 'networkidle'});
-					let element;
-					try{
-						element = await page.$(".packageForm");
-					}catch(error){
-						console.log(error);
-					}
-					expect(element).toBeDefined();
-				}, 5000);
-			});
-		}	
-	});
 }
 
+/**
+ * 
+ *			Package Details 
+ * 
+ */
+export async function doPackageDetails(shipment){
+	let packageCount = Math.floor(Math.random() * 3) + 1;
+	let packages = await Wizard.PackageDetails(shipment.service, packageCount);
+	expect(await PackageDetailsValidations(shipment.service, packageCount)).toBe(true);
+
+	packages.forEach((element) => {
+		currentPieces += element.quantity;
+		currentWeight += element.quantity * element.weight;
+	});
+}
+export async function doPackageDetailsProceed(isXBorder){
+	let ready = false;
+	while(!ready){
+		ready = await page.$eval(".btn.next", (element) => {
+			return element.innerText == "Next";
+		});
+	}
+	
+	await page.click(".btn.next", {waitUntil: 'networkidle'});
+	let element = isXBorder? await page.$(".product-table-container") : await page.$(".confirmation-without-customs");
+	expect(element).toBeDefined();
+}
 async function PackageDetailsValidations(service, packageCount){
 	let res = true, data, count = 0;
 	data = await page.$eval("select[name=service_type]", (element) => {
@@ -192,88 +168,96 @@ async function PackageDetailsValidations(service, packageCount){
 	return res == Math.pow(2,count) - 1;
 
 }
+
+
 /**
- * PackageDetailsTests will test the package details, validate if the information generated and given 
- * 	is valid and chanegd correctly
+ * 
+ *			Confirm And Pay 
+ * 
  */
-function PackageDetailsTests(service, isXBorder){
-	let onPage = true;
-	let packages;
-
-	// Check to see if you are on the page
-	describe("Package Details Pre-Tests", () => {
-		test("Check to see if on Package Details Page", async () => {
-			let element = await page.$(".packageForm");
-			onPage = element != null;
-			expect(element).toBeDefined();
+export async function doConfirmPay(shipment){
+	let confirmInfo = await Wizard.ConfirmAndPay(shipment.ready, shipment.closing, shipment.point, shipment.account);
+	expect(confirmInfo).toHaveProperty('references');
+	expect(confirmInfo).toHaveProperty('services');
+	expect(await ConfirmPayValidations(shipment.ready, shipment.closing, shipment.point, confirmInfo)).toBe(true);
+}
+export async function doConfirmPayProceed(path){
+	let pages = await browser.pages();
+	let beforeCount = pages.length;
+	let ready = false;
+	while(!ready){
+		ready = await page.$eval(".final-ship", (element) => {
+			return element.innerText == "Ship";
 		});
-	});
+	}
+	await page.click(".final-ship", {waitUntil: 'networkidle'});
+	pages = await browser.pages();
+	while(pages.length < beforeCount + 1){
+		await page.waitFor(1000);
+		pages = await browser.pages();
+	}
+	let popup = pages.pop();
+	expect(popup.url()).toMatch(/blob:*/);
+	expect(await CheckifShipmentwasCreated()).toBe(true);
 
-	// PACKAGE DETAILS
-	describe("Package Details", () => {
-		if(onPage){
-			let packageCount = Math.floor(Math.random() * 3) + 1;
-			test("Generating Package Details", async () => {
-				packages = await Wizard.PackageDetails(service, packageCount);
-				expect(await PackageDetailsValidations(service, packageCount)).toBe(true);
+	try{
+		if (!fs.existsSync(path))
+			fs.mkdirSync(path);
+		await Writer.WriteDataToFile(path + "data.txt");
 
-				packages.forEach((element) => {
-					currentPieces += element.quantity;
-					currentWeight += element.quantity * element.weight;
-				});
-			}, 20000);
 
-			describe("Validations", () => {
-				test("Able to proceed to Confirm and pay", async () => {
-					let ready = false;
-					while(!ready){
-						ready = await page.$eval(".btn.next", (element) => {
-							return element.innerText == "Next";
-						});
-					}
-					
-					await page.click(".btn.next", {waitUntil: 'networkidle'});
-					let element = isXBorder? await page.$(".product-table-container") : await page.$(".confirmation-without-customs");
-					expect(element).toBeDefined();
-				}, 5000);
-			});
-		}
-	});
+		//await popup.waitFor(5000);
+		//ERROR HERE TODO
+		//const html = await popup.evaluate('new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML');
+		//await Writer.WritetoFile(path + "html.txt", html);
+	}catch(err){ done.fail(err); }
+
+	try{
+		if (!fs.existsSync(path))
+			fs.mkdirSync(path);
+		await popup.waitFor(2500);
+		await popup.screenshot({path: path + "label.png", type: "png", fullPage: true});
+		await popup.close();
+	}catch(err){ done.fail(err); }
 }
+async function CheckifShipmentwasCreated(){
+	// STUFF IN HERE CAN BE IN ANOTHER FILE!!
+	let res = true, data, count = 0;
+	// <THIS IS GO TO MANIFEST>
+	await page.click("div.side-bar > div:nth-child(2) > a > div.icon > i");
+	// </THIS IS GO TO MANIFEST>
+	if(!!(await page.$("div.shipment-list-wrapper > div > span:nth-child(1) > div")))
+		return false;
+	
+	try{
+		await page.waitForSelector("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", {timeout: 2500});
+	}catch(e){return false;}
 
-// TODO: fix error with customs details page and validations
-async function CustomsDetailsValidations(details){
-	return true;
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", (element) => {
+		return element.textContent;
+	}));
+	res |= data == currentWeight? 1 << (++count - 1):0;
+
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.packages", (element) => {
+		return element.textContent;
+	}));
+	res |= data == currentPieces? 1 << (++count - 1):0;
+
+	var today = new Date().toJSON().slice(0,10).replace(/-/g,'/').split('/');
+	today = today[1] + "/" +  today[2] + "/" + today[0];
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.date", (element) => {
+		return element.textContent;
+	}));
+	res |= data == today? 1 << (++count - 1):0;
+
+	var service = Helper.GetServiceNameFromAccount(currentInfo.account);
+	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.service > span > span", (element) => {
+		return element.textContent;
+	}));
+	res |= data == service? 1 << (++count - 1):0;
+
+	return (res == (Math.pow(2,count) - 1));
 }
-function CustomsDetailsTests(){
-	let details;
-	describe("Customs Details", () => {
-		if(anyErrors){
-			//exit();
-		}
-
-		test("Generating Customs Details", async () => {
-			details = await Wizard.CustomsDetails();
-			expect(await CustomsDetailsValidations(details)).toBe(true);
-		}, 20000);
-
-		describe("Validations", () => {
-			test("Able to go to confirm and pay", async () => {
-				let ready = false;
-				while(!ready){
-					ready = await page.$eval(".btn.next", (element) => {
-						return element.innerText == "Next";
-					});
-				}
-
-				await page.click(".btn.next", {waitUntil: 'networkidle'});
-				let element = await page.$(".confirmation-with-customs");
-				expect(element).toBeDefined();
-			}, 5000);
-		});
-	});
-}
-
 async function ConfirmPayValidations(pickupReady,pickupClosing,pickupPoint,confirmInfo){
 	let res = true, data, count = 0;
 
@@ -325,135 +309,43 @@ async function ConfirmPayValidations(pickupReady,pickupClosing,pickupPoint,confi
 	return res == Math.pow(2,count) - 1;
 }
 
-// STUFF IN HERE CAN BE IN ANOTHER FILE!!
-async function CheckifShipmentwasCreated(){
-	let res = true, data, count = 0;
-	// <THIS IS GO TO MANIFEST>
-	await page.click("div.side-bar > div:nth-child(2) > a > div.icon > i");
-	// </THIS IS GO TO MANIFEST>
-	if(!!(await page.$("div.shipment-list-wrapper > div > span:nth-child(1) > div")))
-		return false;
-	
-	try{
-		await page.waitForSelector("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", {timeout: 2500});
-	}catch(e){return false;}
-
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", (element) => {
-		return element.textContent;
-	}));
-	res |= data == currentWeight? 1 << (++count - 1):0;
-
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.packages", (element) => {
-		return element.textContent;
-	}));
-	res |= data == currentPieces? 1 << (++count - 1):0;
-
-	var today = new Date().toJSON().slice(0,10).replace(/-/g,'/').split('/');
-	today = today[1] + "/" +  today[2] + "/" + today[0];
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.date", (element) => {
-		return element.textContent;
-	}));
-	res |= data == today? 1 << (++count - 1):0;
-
-	var service = Helper.GetServiceNameFromAccount(currentInfo.account);
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.service > span > span", (element) => {
-		return element.textContent;
-	}));
-	res |= data == service? 1 << (++count - 1):0;
-
-	return (res == (Math.pow(2,count) - 1));
-}
 /**
- * ConfirmPayTests
+ * 
+ * 			Customs Details
+ *  
  */
-function ConfirmPayTests(pickupReady,pickupClosing,pickupPoint,account,path){
-	let onPage = true;
-	let confirmInfo;
-	let popup;
+// TODO: fix error with customs details page and validations
+async function CustomsDetailsValidations(details){
+	return true;
+}
+function CustomsDetailsTests(){
+	let details;
+	describe("Customs Details", () => {
+		if(anyErrors){
+			//exit();
+		}
 
-	// Check to see if you are on the page
-	describe("Confirm and Pay Pre-Tests", () => {
-		test("Check to see if on Confirm and Pay Page", async () => {
-			let element = await page.$(".confirm-status-banner");
-			onPage = element != null;
-			expect(element).toBeDefined();
+		test("Generating Customs Details", async () => {
+			details = await Wizard.CustomsDetails();
+			expect(await CustomsDetailsValidations(details)).toBe(true);
+		}, 20000);
+
+		describe("Validations", () => {
+			test("Able to go to confirm and pay", async () => {
+				let ready = false;
+				while(!ready){
+					ready = await page.$eval(".btn.next", (element) => {
+						return element.innerText == "Next";
+					});
+				}
+
+				await page.click(".btn.next", {waitUntil: 'networkidle'});
+				let element = await page.$(".confirmation-with-customs");
+				expect(element).toBeDefined();
+			}, 5000);
 		});
 	});
-
-	describe("Confirm and pay", () => {
-		if(onPage){
-			test("Generating Confirm and Pay Details", async () => {
-				confirmInfo = await Wizard.ConfirmAndPay(pickupReady, pickupClosing, pickupPoint, account);
-				expect(confirmInfo).toHaveProperty('references');
-				expect(confirmInfo).toHaveProperty('services');
-				expect(await ConfirmPayValidations(pickupReady, pickupClosing, pickupPoint,confirmInfo)).toBe(true);
-			}, 20000);
-
-			// VALIDATIONS
-			describe("Validations", () => {
-				test("Able to create the final shipment", async () => {
-					let pages = await browser.pages();
-					let beforeCount = pages.length;
-					let ready = false;
-					while(!ready){
-						ready = await page.$eval(".final-ship", (element) => {
-							return element.innerText == "Ship";
-						});
-					}
-					await page.click(".final-ship", {waitUntil: 'networkidle'});
-					pages = await browser.pages();
-					while(pages.length < beforeCount + 1){
-						await page.waitFor(1000);
-						pages = await browser.pages();
-					}
-					popup = pages.pop();
-					expect(popup.url()).toMatch(/blob:*/);
-				}, 20000);
-				test("Check to see if shipment was created", async () => {
-					expect(await CheckifShipmentwasCreated()).toBe(true);
-				}, 7500);
-			});
-
-			describe("Saving data for human validation", () => {
-				test("Writing Data to files", async () => {
-					let errorThrown;
-					try{
-						if (!fs.existsSync(path))
-							fs.mkdirSync(path);
-						await Writer.WriteDataToFile(path + "data.txt");
-
-
-						await popup.waitFor(5000);
-						//ERROR HERE TODO
-						const html = await popup.evaluate('new XMLSerializer().serializeToString(document.doctype) + document.documentElement.outerHTML');
-						await Writer.WritetoFile(path + "html.txt", html);
-					}catch(error){
-						errorThrown = error;
-						console.log(error);
-					}
-					expect(errorThrown).toBeUndefined();
-				}, 10000);
-
-				test("Taking Screenshot", async () => {
-					let errorThrown;
-					try{
-						if (!fs.existsSync(path))
-							fs.mkdirSync(path);
-						await popup.waitFor(2500);
-						await popup.screenshot({path: path + "label.png", type: "png", fullPage: true});
-						await popup.close();
-					}catch(error){
-						errorThrown = error;
-						console.log(error);
-					}
-					expect(errorThrown).toBeUndefined();
-				}, 20000);	
-			});
-		}
-	});
 }
-
-
 
 
 // SHOULD NOT BE HERE

@@ -5,6 +5,7 @@ import { Manifest } from '../src/app/modules/Manifests/helper';
 import { SignIn } from '../src/app/modules/Signin/helper';
 import { PAYMENT_TYPES, ACCOUNTS, SERVICE_TYPES, PICKUP_POINTS, PICKUP_TIMES} from '../src/app/modules/Shipments/shipment_details';
 import * as Contact from '../src/app/modules/Contacts/controller';
+import * as failFast from 'jasmine-fail-fast';
 
 function RandomizeShipment(id){
     return {
@@ -34,8 +35,7 @@ beforeAll(async () => {
 });
 afterAll(() => {
     _.GetBrowser().close();
-});
-
+});/*
 // Before and After each test
 beforeEach(() => {
     count++;
@@ -50,7 +50,8 @@ const reporter = {
       res |= result.status === 'failed'? 0 : 1 << (count - 1);
     },
 };
-jasmine.getEnv().addReporter(reporter);
+//jasmine.getEnv().addReporter(reporter);*/
+//jasmine.getEnv().addReporter(failFast.init());
 
 const NUMBER_OF_DOMESTIC_SHIPMENTS = 100;
 const USERNAME = "Jeremy@dicom.com";
@@ -61,9 +62,9 @@ const XBORDER_PATH = "data/wizard/xborder/";
 let page;
 let browser;
 let contacts = [];
-let domestic_shipments = [];
-let shipping_test_from;
-let res = 0, count = 0;
+//let domestic_shipments = [];
+//let shipping_test_from;
+//let res = 0, count = 0;
 
 /*******************************************************
  *  Pre-Test:
@@ -72,24 +73,24 @@ describe("Pre-tests", () => {
     test("Page and browser are not null",() => {
         page = _.GetPage();
         browser = _.GetBrowser();
-        expect(page && browser).toBeDefined();
-    }, 1000);
+        return expect(page && browser).toBeDefined();
+    }, 5000);
 
     test("Sign In setup", () => {
-        expect(SignIn.Setup()).toBe(true);
-    }, 1000);
+        return expect(SignIn.Setup()).toBe(true);
+    }, 2000);
 
     test("Wizard setup", () => {
-        expect(Wizard.Setup(page, browser)).toBe(true);
-    }, 1000);
+        return expect(Wizard.Setup(page, browser)).toBe(true);
+    }, 2000);
     test("Contacts setup", () => {
-        expect(Contact.Tests.Setup()).toBe(true);
-    }, 1000);
+        return expect(Contact.Tests.Setup()).toBe(true);
+    }, 2000);
     test("Manifest Setup", () => {
-        expect(Manifest.Setup()).toBe(true);
+        return expect(Manifest.Setup(page, browser)).toBe(true);
     });
     test("Signing in", async () => {
-        expect(await SignIn.onSignIn(USERNAME, PASSWORD)).toBe(true);
+        return expect(await SignIn.onSignIn(USERNAME, PASSWORD)).toBe(true);
     }, 5000);
     test("Package Randomiser bringing the right data back", async() => {
         let pkg = Helper.PackageDetails.PackageRandomizer();
@@ -161,23 +162,44 @@ describe("Pre-tests", () => {
  */
 
 //Domestic parcel
-describe("TEST DOMESTIC PARCEL SHIPMENT", () => {
-//for(var i = 0; i < 5; i++){
-    let shipment = {
-        from: "Dicom Shipping Test",
-        to: "Jeremy Corp",
-        payment: PAYMENT_TYPES.prepaid,
-        account: ACCOUNTS.ca_parcel,
-        service: SERVICE_TYPES.ground,
-        ready: PICKUP_TIMES.eight,
-        closing: PICKUP_TIMES.four_thirty,
-        point: PICKUP_POINTS.mailbox,
-        path: (DOMESTIC_PATH + "test/")
-    };
-    Wizard.GenerateDomesticTest(shipment);
-    Wizard.GenerateManifestTest(true, "10500 RYAN DORVAL, QC H9P2T7, CA", (DOMESTIC_PATH + "test/"));
-//}
-}, 150000);
+describe("Testing Domestic Parcel Shipments", () => {
+    //for(var i = 0; i < 5; i++){
+    describe("test #1", () => {
+        let shipment = {
+            from: "Dicom Shipping Test",
+            to: "Jeremy Corp",
+            payment: PAYMENT_TYPES.prepaid,
+            account: ACCOUNTS.ca_parcel,
+            service: SERVICE_TYPES.ground,
+            ready: PICKUP_TIMES.eight,
+            closing: PICKUP_TIMES.four_thirty,
+            point: PICKUP_POINTS.mailbox,
+            path: (DOMESTIC_PATH + "test/")
+        };
+
+        // with the shipment can we predict the error if any, so that when running the test
+        // below upon return of or within the test itself we can make sure it passes if it is
+        // supposed to run in to an error, e.g. ready time is later than closing time.
+
+        test("test", async () => {
+            let noError = true;
+            try{
+                await doChangetoWizard();
+        
+                noError = await doAddressDetails(info);
+                await doAddressDetailsProceed();
+        
+                await doPackageDetails(info);
+                await doPackageDetailsProceed(false);
+        
+                await doConfirmPay(info);
+                await doConfirmPayProceed(info.path);
+        
+            }catch(err){ done.fail(err); }
+        }, 40000);
+    });
+    //}
+});
 
 
 
