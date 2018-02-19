@@ -163,8 +163,8 @@ describe("Pre-tests", () => {
 
 //Domestic parcel
 describe("Testing Domestic Parcel Shipments", () => {
-    //for(var i = 0; i < 5; i++){
-    describe("test #1", () => {
+    for(var i = 0; i < 100; i++){
+    describe("test #"+i+".", () => {
         let shipment = {
             from: "Dicom Shipping Test",
             to: "Jeremy Corp",
@@ -181,24 +181,29 @@ describe("Testing Domestic Parcel Shipments", () => {
         // below upon return of or within the test itself we can make sure it passes if it is
         // supposed to run in to an error, e.g. ready time is later than closing time.
 
+        /*
+                Possible errors: 
+                    ready time is later than closing time
+        */
+
         test("test", async () => {
             let noError = true;
             try{
-                await doChangetoWizard();
+                noError = await Wizard.doChangetoWizard();
         
-                noError = await doAddressDetails(info);
-                await doAddressDetailsProceed();
+                noError = await Wizard.doAddressDetails(shipment);
+                noError = await Wizard.doAddressDetailsProceed();
         
-                await doPackageDetails(info);
-                await doPackageDetailsProceed(false);
+                noError = await Wizard.doPackageDetails(shipment);
+                noError = await Wizard.doPackageDetailsProceed(false);
         
-                await doConfirmPay(info);
-                await doConfirmPayProceed(info.path);
-        
-            }catch(err){ done.fail(err); }
+                noError = await Wizard.doConfirmPay(shipment);
+                noError = await Wizard.doConfirmPayProceed(shipment.path);
+                expect(noError).toBe(true);
+            }catch(err){ console.log(err);fail(err); }
         }, 40000);
     });
-    //}
+    }
 });
 
 

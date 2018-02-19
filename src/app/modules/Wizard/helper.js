@@ -3,6 +3,7 @@ import fs, { read } from 'fs';
 import * as _ from '../Puppeteer/page_helper';
 import { Selectors } from './selectors';
 import * as details from '../Shipments/shipment_details';
+import * as Writer from '../Writer/controller';
 
 // Constants
 const broker = "cisuu7xyi000o0yghovn49w6u";
@@ -165,61 +166,146 @@ export const Wizard = {
 		await Wizard.GoToWizard();
 		await page.click(Selectors.buttons.restart_shipment);
 		await page.waitForSelector(Selectors.divs.wizard_container, {timeout: 10000, visible: true});
-	}
-}
-
-async function WriteTitle(title, stream){
-	for(var i = 0; i < 25; i++)
-		stream.write("=")
-	stream.write(title);
-	for(var i = 0; i < 25; i++)
-		stream.write("=")
-	stream.write("\n");
-}
-export const Writer = {
-	WriteDataToFile: async (full_path) => {
-		let packages = currentpkgs;
-		let refs = refsServices.references;
-		let services = refsServices.services;
-		let stream = fs.createWriteStream(full_path);
-
-		stream.once('open', () => {
-			// PACKAGES
-			WriteTitle("Packages", stream);
-			for(var i = 0; i < packages.length; i++){
-				stream.write("Package #" + (i+1) + "\n");
-				stream.write("\tType: " + currentAccount != "8292093"? packages[i].type.parcel : packages[i].type.freight + "\n");
-				stream.write("\tQuantity: " + packages[i].quantity + "\n");
-	
-				if(packages[i].type != "EV"){
-					stream.write("\tWeight: " + packages[i].weight + "\n");
-					stream.write("\tLength: " + packages[i].length + "\n");
-					stream.write("\tWidth: " + packages[i].width + "\n");
-					stream.write("\tHeight: " + packages[i].height + "\n");
-				}
-				stream.write("\tInstructions: " + packages[i].instructions + "\n");
-			}
-	
-			// REFERENCES
-			WriteTitle("References", stream);
-			stream.write("\tEmployee Number: " + refs.employee + "\n");
-			stream.write("\tInvoice Number: " + refs.invoice + "\n");
-			stream.write("\tPurchase Order number: " + refs.order + "\n");
-			stream.write("\tPre-Sold Order Reference #: " + refs.reference + "\n");
-	
-	
-			// SERVICES
-			WriteTitle("Services", stream);
-			services.forEach((service) => {
-				stream.write("\t" + service + "\n");
-			});
-		});
 	},
-	WritetoFile: async (path, data) => {
-		let stream = fs.createWriteStream(path);
-		
-		stream.once('open', () => {
-			stream.write(data);
+	WriteToFile: async (path) => {
+		await Writer.WriteDataToFile(path, currentpkgs, refsServices, currentAccount);
+	},
+	AddressDetailsValidation: async (from, to, paymentType, account) => {
+		let res = true, data, count = 0;
+	
+		// From
+		data = await page.$eval(".address-bubble.active div.title", (element)=>{
+			return element.innerText;
 		});
+		res |= data == from? 1 << (++count - 1): 0;
+		
+		// TO
+		data = await page.$eval(".address-bubble.orange-active div.title", (element)=>{
+			return element.innerText;
+		});
+		res |= data == to? 1 << (++count - 1): 0;
+	
+		// Payment Type
+		data = await page.$eval("select[name=payment_type]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		});
+		res |= data == paymentType? 1 << (++count - 1): 0;
+	
+		// Account
+		data = await page.$eval("select[name=billing_account]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		});
+		res |= data == account? 1 << (++count - 1): 0;
+		return (res == Math.pow(2,count) - 1);
+	
+	},
+	PackageDetailsValidations: async (service, packageCount) => {
+		let res = true, data, count = 0;
+		data = await page.$eval("select[name=service_type]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		});
+		res |= data == service? 1 << (++count - 1):0;
+	
+		data = await page.evaluate(() => {
+			const divs = Array.from(document.querySelectorAll('.package-list-package  '))
+				return divs.length;
+		});
+		res |= data == packageCount? 1 << (++count - 1):0;
+		return res == Math.pow(2,count) - 1;
+	
+	},
+	CheckifShipmentwasCreated: async () => {
+		// STUFF IN HERE CAN BE IN ANOTHER FILE!!
+		let res = true, data, count = 0;
+		// <THIS IS GO TO MANIFEST>
+		await page.click("div.side-bar > div:nth-child(2) > a > div.icon > i");
+		// </THIS IS GO TO MANIFEST>
+		if(!!(await page.$("div.shipment-list-wrapper > div > span:nth-child(1) > div")))
+			return false;
+		
+		try{
+			await page.waitForSelector("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", {timeout: 2500});
+		}catch(e){return false;}
+	
+		data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", (element) => {
+			return element.textContent;
+		}));
+		res |= data == currentWeight? 1 << (++count - 1):0;
+	
+		data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.packages", (element) => {
+			return element.textContent;
+		}));
+		res |= data == currentPieces? 1 << (++count - 1):0;
+	
+		var today = new Date().toJSON().slice(0,10).replace(/-/g,'/').split('/');
+		today = today[1] + "/" +  today[2] + "/" + today[0];
+		data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.date", (element) => {
+			return element.textContent;
+		}));
+		res |= data == today? 1 << (++count - 1):0;
+	
+		var service = Helper.GetServiceNameFromAccount(currentInfo.account);
+		data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.service > span > span", (element) => {
+			return element.textContent;
+		}));
+		res |= data == service? 1 << (++count - 1):0;
+	
+		return (res == (Math.pow(2,count) - 1));
+	},
+	ConfirmPayValidations: async (pickupReady,pickupClosing,pickupPoint,confirmInfo) => {
+		let res = true, data, count = 0;
+	
+		// Pickup Ready
+		data = await page.$eval("select[name=pickup_ready_by]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		});
+		res |= data == pickupReady? 1 << (++count - 1):0;
+	
+		// Pickup closing
+		data = await page.$eval("select[name=pickup_closing_time]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		});
+		res |= data == pickupClosing? 1 << (++count - 1):0;
+	
+		// Pickup point
+		data = await page.$eval("select[name=pickup_point]", (element) => {
+			var selected = element.options[element.selectedIndex];
+			return selected.getAttribute("value");
+		});
+		res |= data == pickupPoint? 1 << (++count - 1):0;
+	
+		// Employee Number
+		data = await page.$eval(".kv-inputs div:nth-child(1) input:nth-child(2)", (element) => {
+			return element.getAttribute("value");
+		});
+		res |= data == confirmInfo.references.employee? 1 << (++count - 1):0;
+	
+		// Invoice Number
+		data = await page.$eval(".kv-inputs div:nth-child(2) input:nth-child(2)", (element) => {
+			return element.getAttribute("value");
+		});
+		res |= data == confirmInfo.references.invoice? 1 << (++count - 1):0;
+	
+		// Purchase order number
+		data = await page.$eval(".kv-inputs div:nth-child(3) input:nth-child(2)", (element) => {
+			return element.getAttribute("value");
+		});
+		res |= data == confirmInfo.references.order? 1 << (++count - 1):0;
+	
+		// Pre-Sold Order Number
+		data = await page.$eval(".kv-inputs div:nth-child(4) input:nth-child(2)", (element) => {
+			return element.getAttribute("value");
+		});
+		res |= data == confirmInfo.references.reference? 1 << (++count - 1):0;
+	
+		return res == Math.pow(2,count) - 1;
+	},
+	CustomsDetailsValidations: async (details) => {
+		return true;
 	}
 }

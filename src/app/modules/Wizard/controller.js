@@ -1,6 +1,7 @@
 import faker from "faker";
 import fs from 'fs';
-import { Wizard, Writer } from './helper';
+import * as Writer from '../Writer/controller';
+import { Wizard } from './helper';
 import { Helper } from '../Shipments/shipment_details'; 
 import { Manifest } from '../Manifests/helper';
 import { Selectors } from './selectors';
@@ -77,9 +78,9 @@ export async function doChangetoWizard(){
  * 
  */
 export async function doAddressDetails(shipment){
-	currentInfo = info;
+	currentInfo = shipment;
 	await Wizard.AddressDetails(shipment.from, shipment.to, shipment.payment, shipment.account);
-	let validation = await AddressDetailsValidation(shipment.from, shipment.to, shipment.payment, shipment.account);
+	let validation = await Wizard.AddressDetailsValidation(shipment.from, shipment.to, shipment.payment, shipment.account);
 	expect(validation).toBe(true);
 	return validation;
 }
@@ -93,37 +94,6 @@ export async function doAddressDetailsProceed(){
 	await page.click(".btn.next", {waitUntil: 'networkidle'});
 	expect(!!(await page.$(".packageForm"))).toBe(true);
 }
-async function AddressDetailsValidation(from, to, paymentType, account){
-	let res = true, data, count = 0;
-
-	// From
-	data = await page.$eval(".address-bubble.active div.title", (element)=>{
-		return element.innerText;
-	});
-	res |= data == from? 1 << (++count - 1): 0; 		// 0001
-	
-	// TO
-	data = await page.$eval(".address-bubble.orange-active div.title", (element)=>{
-		return element.innerText;
-	});
-	res |= data == to? 1 << (++count - 1): 0; 			// 0011
-
-	// Payment Type
-	data = await page.$eval("select[name=payment_type]", (element) => {
-		var selected = element.options[element.selectedIndex];
-		return selected.getAttribute("value");
-	});
-	res |= data == paymentType? 1 << (++count - 1): 0; 	// 0111
-
-	// Account
-	data = await page.$eval("select[name=billing_account]", (element) => {
-		var selected = element.options[element.selectedIndex];
-		return selected.getAttribute("value");
-	});
-	res |= data == account? 1 << (++count - 1): 0; 		// 1111 
-	return (res == Math.pow(2,count) - 1);
-
-}
 
 /**
  * 
@@ -133,7 +103,7 @@ async function AddressDetailsValidation(from, to, paymentType, account){
 export async function doPackageDetails(shipment){
 	let packageCount = Math.floor(Math.random() * 3) + 1;
 	let packages = await Wizard.PackageDetails(shipment.service, packageCount);
-	expect(await PackageDetailsValidations(shipment.service, packageCount)).toBe(true);
+	expect(await Wizard.PackageDetailsValidations(shipment.service, packageCount)).toBe(true);
 
 	packages.forEach((element) => {
 		currentPieces += element.quantity;
@@ -152,22 +122,6 @@ export async function doPackageDetailsProceed(isXBorder){
 	let element = isXBorder? await page.$(".product-table-container") : await page.$(".confirmation-without-customs");
 	expect(element).toBeDefined();
 }
-async function PackageDetailsValidations(service, packageCount){
-	let res = true, data, count = 0;
-	data = await page.$eval("select[name=service_type]", (element) => {
-		var selected = element.options[element.selectedIndex];
-		return selected.getAttribute("value");
-	});
-	res |= data == service? 1 << (++count - 1):0;
-
-	data = await page.evaluate(() => {
-		const divs = Array.from(document.querySelectorAll('.package-list-package  '))
-			return divs.length;
-	});
-	res |= data == packageCount? 1 << (++count - 1):0;
-	return res == Math.pow(2,count) - 1;
-
-}
 
 
 /**
@@ -179,7 +133,7 @@ export async function doConfirmPay(shipment){
 	let confirmInfo = await Wizard.ConfirmAndPay(shipment.ready, shipment.closing, shipment.point, shipment.account);
 	expect(confirmInfo).toHaveProperty('references');
 	expect(confirmInfo).toHaveProperty('services');
-	expect(await ConfirmPayValidations(shipment.ready, shipment.closing, shipment.point, confirmInfo)).toBe(true);
+	expect(await Wizard.ConfirmPayValidations(shipment.ready, shipment.closing, shipment.point, confirmInfo)).toBe(true);
 }
 export async function doConfirmPayProceed(path){
 	let pages = await browser.pages();
@@ -198,12 +152,12 @@ export async function doConfirmPayProceed(path){
 	}
 	let popup = pages.pop();
 	expect(popup.url()).toMatch(/blob:*/);
-	expect(await CheckifShipmentwasCreated()).toBe(true);
+	expect(await Wizard.CheckifShipmentwasCreated()).toBe(true);
 
 	try{
 		if (!fs.existsSync(path))
 			fs.mkdirSync(path);
-		await Writer.WriteDataToFile(path + "data.txt");
+		await Wizard.WriteToFile(path + "data.txt");
 
 
 		//await popup.waitFor(5000);
@@ -220,94 +174,6 @@ export async function doConfirmPayProceed(path){
 		await popup.close();
 	}catch(err){ done.fail(err); }
 }
-async function CheckifShipmentwasCreated(){
-	// STUFF IN HERE CAN BE IN ANOTHER FILE!!
-	let res = true, data, count = 0;
-	// <THIS IS GO TO MANIFEST>
-	await page.click("div.side-bar > div:nth-child(2) > a > div.icon > i");
-	// </THIS IS GO TO MANIFEST>
-	if(!!(await page.$("div.shipment-list-wrapper > div > span:nth-child(1) > div")))
-		return false;
-	
-	try{
-		await page.waitForSelector("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", {timeout: 2500});
-	}catch(e){return false;}
-
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.weight", (element) => {
-		return element.textContent;
-	}));
-	res |= data == currentWeight? 1 << (++count - 1):0;
-
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.packages", (element) => {
-		return element.textContent;
-	}));
-	res |= data == currentPieces? 1 << (++count - 1):0;
-
-	var today = new Date().toJSON().slice(0,10).replace(/-/g,'/').split('/');
-	today = today[1] + "/" +  today[2] + "/" + today[0];
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.date", (element) => {
-		return element.textContent;
-	}));
-	res |= data == today? 1 << (++count - 1):0;
-
-	var service = Helper.GetServiceNameFromAccount(currentInfo.account);
-	data = (await page.$eval("div.shipment-list-wrapper > div > span:nth-child(1) > div > div.shipment-item.service > span > span", (element) => {
-		return element.textContent;
-	}));
-	res |= data == service? 1 << (++count - 1):0;
-
-	return (res == (Math.pow(2,count) - 1));
-}
-async function ConfirmPayValidations(pickupReady,pickupClosing,pickupPoint,confirmInfo){
-	let res = true, data, count = 0;
-
-	// Pickup Ready
-	data = await page.$eval("select[name=pickup_ready_by]", (element) => {
-		var selected = element.options[element.selectedIndex];
-		return selected.getAttribute("value");
-	});
-	res |= data == pickupReady? 1 << (++count - 1):0;
-
-	// Pickup closing
-	data = await page.$eval("select[name=pickup_closing_time]", (element) => {
-		var selected = element.options[element.selectedIndex];
-		return selected.getAttribute("value");
-	});
-	res |= data == pickupClosing? 1 << (++count - 1):0;
-
-	// Pickup point
-	data = await page.$eval("select[name=pickup_point]", (element) => {
-		var selected = element.options[element.selectedIndex];
-		return selected.getAttribute("value");
-	});
-	res |= data == pickupPoint? 1 << (++count - 1):0;
-
-	// Employee Number
-	data = await page.$eval(".kv-inputs div:nth-child(1) input:nth-child(2)", (element) => {
-		return element.getAttribute("value");
-	});
-	res |= data == confirmInfo.references.employee? 1 << (++count - 1):0;
-
-	// Invoice Number
-	data = await page.$eval(".kv-inputs div:nth-child(2) input:nth-child(2)", (element) => {
-		return element.getAttribute("value");
-	});
-	res |= data == confirmInfo.references.invoice? 1 << (++count - 1):0;
-
-	// Purchase order number
-	data = await page.$eval(".kv-inputs div:nth-child(3) input:nth-child(2)", (element) => {
-		return element.getAttribute("value");
-	});
-	res |= data == confirmInfo.references.order? 1 << (++count - 1):0;
-
-	// Pre-Sold Order Number
-	data = await page.$eval(".kv-inputs div:nth-child(4) input:nth-child(2)", (element) => {
-		return element.getAttribute("value");
-	});
-	res |= data == confirmInfo.references.reference? 1 << (++count - 1):0;
-
-	return res == Math.pow(2,count) - 1;
-}
 
 /**
  * 
@@ -315,9 +181,6 @@ async function ConfirmPayValidations(pickupReady,pickupClosing,pickupPoint,confi
  *  
  */
 // TODO: fix error with customs details page and validations
-async function CustomsDetailsValidations(details){
-	return true;
-}
 function CustomsDetailsTests(){
 	let details;
 	describe("Customs Details", () => {
@@ -327,7 +190,7 @@ function CustomsDetailsTests(){
 
 		test("Generating Customs Details", async () => {
 			details = await Wizard.CustomsDetails();
-			expect(await CustomsDetailsValidations(details)).toBe(true);
+			expect(await Wizard.CustomsDetailsValidations(details)).toBe(true);
 		}, 20000);
 
 		describe("Validations", () => {
